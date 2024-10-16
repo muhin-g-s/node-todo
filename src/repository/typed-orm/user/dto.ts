@@ -1,9 +1,7 @@
-import "reflect-metadata"
-
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity()
-export class UserDTO {
+export class User {
 	@PrimaryGeneratedColumn('uuid')
 	id: string;
 
@@ -13,12 +11,12 @@ export class UserDTO {
 	@Column()
 	password: string;
 
-	@Column()
+	@CreateDateColumn()
 	createdAt: Date;
 
-	@Column()
+	@UpdateDateColumn()
 	updatedAt: Date;
 
-	@Column()
+	@Column({ nullable: true })
 	deleteAt: Date;
 }

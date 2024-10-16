@@ -1,15 +1,14 @@
 import { EntityManager } from 'typeorm';
 import { UserEntity } from '../../../domain/entities/user';
 import { IUserRepository } from '../../user/interface-user-repository';
-import { UserDTO } from './dto';
-import "reflect-metadata"
+import { User } from './dto';
 
 export class UserRepository implements IUserRepository {
 
 	constructor(private entityManager: EntityManager){}
 
 	async create(userEntity: UserEntity): Promise<UserEntity> {
-		const userDto = new UserDTO();
+		const userDto = new User();
 
 		userDto.username = userEntity.username;
 		userDto.password = userEntity.password;
