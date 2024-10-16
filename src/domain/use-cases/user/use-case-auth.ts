@@ -9,10 +9,27 @@ export class UseCaseAuth {
 	constructor(private authManager: IAuthManager, private userService: UserService) {}
 
 	async register(userEntity: UserEntity): Promise<UserEntity> {
-		const hashPassword = await bcrypt.hash(userEntity.password!, 10);
 
-		const user: UserEntity = {...userEntity, password: hashPassword};
+		const password = userEntity.password;
 
-		return this.userService.create(user);
+		if(this.checkPasswordComplexity(password)) {
+			throw new Error('sdlnsdklsmd');
+		}
+
+		userEntity.password = await this.generateHashPassword(password);
+
+		return this.userService.create(userEntity);
+	}
+
+	private checkPasswordComplexity(password: string): boolean {
+		if(password === '') {
+			return false;
+		}
+
+		return true;
+	}
+
+	private async generateHashPassword(password: string): Promise<string> {
+		return bcrypt.hash(password, 10);
 	}
 }

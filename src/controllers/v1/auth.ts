@@ -8,13 +8,8 @@ export class AuthHandler {
 	constructor(private useCaseAuth: UseCaseAuth) {
 	}
 
-
 	registerRoutes = async (instance: FastifyInstance, options: FastifyPluginOptions): Promise<void> => {
 		instance.post('/register', async (request, reply) => {
-			console.log(this.useCaseAuth);
-
-			console.log(typeof request.body);
-
 			const requestData = JSON.parse(request.body as string) as UserEntity;
 
 			if(!requestData.password) {
@@ -34,6 +29,10 @@ export class AuthHandler {
 				...userWithoutPassword,
 			}
 			return reply.code(200).send(response);
+		})
+
+		instance.post('/login', async (request, reply) => {
+			return reply.code(200).send({ msg: 'login' })
 		})
 	}
 }
