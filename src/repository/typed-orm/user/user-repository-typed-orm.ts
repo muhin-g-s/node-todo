@@ -1,11 +1,15 @@
-import { EntityManager } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 import { UserEntity } from '../../../domain/entities/user';
 import { IUserRepository } from '../../user/interface-user-repository';
 import { User } from './dto';
 
 export class UserRepository implements IUserRepository {
 
-	constructor(private entityManager: EntityManager){}
+	private repository: Repository<User>;
+
+	constructor(private entityManager: EntityManager){
+		this.repository = entityManager.getRepository(User);
+	}
 
 	async create(userEntity: UserEntity): Promise<UserEntity> {
 		const userDto = new User();
@@ -13,7 +17,7 @@ export class UserRepository implements IUserRepository {
 		userDto.username = userEntity.username;
 		userDto.password = userEntity.password;
 
-		const returnUserDto = await this.entityManager.save(userDto);
+		const returnUserDto = await this.repository.save(userDto);
 
 		return new UserEntity(
 			returnUserDto.id, 
@@ -25,12 +29,12 @@ export class UserRepository implements IUserRepository {
 		);		
 	}
 
-	findById(id: string): Promise<UserEntity> {
-		throw new Error('Method not implemented.');
+	async findById(id: string): Promise<UserEntity> {
+		return this.repository.findOneBy({id});
 	}
 
 	findByUsername(username: string): Promise<UserEntity> {
-		throw new Error('Method not implemented.');
+		return this.repository.findOneBy({username});
 	}
 
 	update(userEntity: UserEntity): Promise<UserEntity> {

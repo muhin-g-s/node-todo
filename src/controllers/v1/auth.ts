@@ -32,7 +32,23 @@ export class AuthHandler {
 		})
 
 		instance.post('/login', async (request, reply) => {
-			return reply.code(200).send({ msg: 'login' })
+			const requestData = JSON.parse(request.body as string) as UserEntity;
+
+			if(!requestData.password) {
+				return reply.code(401).send({ error: 'password' })
+			}
+
+			if(!requestData.username) {
+				return reply.code(401).send({ error: 'username' })
+			}
+
+			const data = await this.useCaseAuth.login(requestData);
+
+			const response = {
+				msg: 'login',
+				...data,
+			}
+			return reply.code(200).send(response);
 		})
 	}
 }
