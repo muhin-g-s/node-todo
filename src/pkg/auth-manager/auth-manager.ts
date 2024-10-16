@@ -4,23 +4,15 @@ import { IAuthManager } from './interface-auth-manager';
 const verySecretKey = 'verySecretKey';
 
 export class AuthManager implements IAuthManager {
-	private key = 'data' as const;
-
 	createToken(data: string): string {
-		return jwt.sign({ [this.key]: data }, verySecretKey);
+		return jwt.sign(data, verySecretKey);
 	}
 
-	getDataFromToken(token: string): {data: string, err: boolean} {
-		const key = this.key;
-
+	getDataFromToken(token: string): string {
 		try {
-			return {data: (jwt.verify(token, verySecretKey) as {[key]: string})[key], err: false};
+			return jwt.verify(token, verySecretKey) as string;
 		} catch {
-			return {
-				data: '',
-				err: true, 
-			}
+			throw new Error('Not verify');
 		}
-
 	} 
 }

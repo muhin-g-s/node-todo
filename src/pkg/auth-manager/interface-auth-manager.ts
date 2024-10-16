@@ -1,4 +1,4 @@
 export interface IAuthManager {
 	createToken(data: string): string
-	getDataFromToken(token: string): {data: string, err: boolean}
+	getDataFromToken(token: string): string
 }

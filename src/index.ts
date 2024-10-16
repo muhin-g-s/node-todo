@@ -6,11 +6,15 @@ import { UseCaseAuth } from './domain/use-cases/user/index';
 import { UserRepository } from './repository/typed-orm/user/index';
 import { sqliteClient } from './pkg/db-client/index';
 import "reflect-metadata"
+import { AuthMiddleware } from './controllers/middleware/auth';
 
 const server: FastifyInstance = Fastify()
 const globalPrefix = 'api/v1';
 
 const authManager = new AuthManager();
+const authMiddleware =  new AuthMiddleware(authManager);
+authMiddleware.addRequestUserId(server);
+
 try {
 
 (async () => {
@@ -20,7 +24,6 @@ try {
     const useCaseAuth = new UseCaseAuth(authManager, userService);
     const authHandler = new AuthHandler(useCaseAuth);
     await server.register(authHandler.registerRoutes, { prefix: globalPrefix + prefixAuth });
-
     const port = await server.listen({ port: 8080 });
     console.log(`Server at 8080 ${port}`);
 })();

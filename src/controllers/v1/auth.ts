@@ -42,13 +42,13 @@ export class AuthHandler {
 				return reply.code(401).send({ error: 'username' })
 			}
 
-			const data = await this.useCaseAuth.login(requestData);
+			const {token, userId} = await this.useCaseAuth.login(requestData);
 
 			const response = {
 				msg: 'login',
-				...data,
+				userId
 			}
-			return reply.code(200).send(response);
+			return reply.code(200).header('authorization', token).send(response);
 		})
 	}
 }
