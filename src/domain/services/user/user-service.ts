@@ -20,8 +20,7 @@ export class UserService {
 		return this.userRepository.update(userEntity);
 	}
 
-
-	delete(userId: string): Promise<boolean> {
-		return this.userRepository.delete(userId);
+	async delete(userId: string): Promise<void> {
+		await this.userRepository.delete(userId);
 	}
 }

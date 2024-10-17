@@ -38,10 +38,10 @@ export class UserRepository implements IUserRepository {
 	}
 
 	update(userEntity: UserEntity): Promise<UserEntity> {
-		throw new Error('Method not implemented.');
+		return this.repository.save({...userEntity, id: userEntity.id});
 	}
 
-	delete(userId: string): Promise<boolean> {
-		throw new Error('Method not implemented.');
+	async delete(userId: string): Promise<void> {
+		await this.repository.delete({id: userId});
 	}
 }

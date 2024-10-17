@@ -5,5 +5,5 @@ export interface IUserRepository {
 	findById(id: string): Promise<UserEntity>
 	findByUsername(username: string): Promise<UserEntity>
 	update(userEntity: UserEntity): Promise<UserEntity>
-	delete(userId: string): Promise<boolean>
+	delete(userId: string): Promise<void>
 }

@@ -7,7 +7,7 @@ export class AuthMiddleware {
 
 	constructor(private authManager: IAuthManager) {}
 
-	register(request: FastifyRequest, reply: FastifyReply, done: HookHandlerDoneFunction) {
+	register = (request: FastifyRequest, reply: FastifyReply, done: HookHandlerDoneFunction) => {
 		const token = request.headers.authorization;
 
 		if(!token) {
@@ -18,7 +18,7 @@ export class AuthMiddleware {
 			const id = this.authManager.getDataFromToken(token);
 			request[userId] = id;
 		} catch {
-			return reply.code(403).send({ error: 'Not verify' });
+			return reply.code(403).send({ error: `Not verify` });
 		}
 
 		done();
