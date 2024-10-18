@@ -1,7 +1,7 @@
-import { IAuthManager } from '../../../pkg/auth-manager';
-import { AuthEntity } from '../../entities/user';
-import { UserEntity } from '../../entities/user';
-import { UserService } from '../../services/user';
+import { IAuthManager } from '@/pkg/auth-manager';
+import { AuthEntity } from '@/domain/entities/user';
+import { UserEntity } from '@/domain/entities/user';
+import { UserService } from '@/domain/services/user';
 
 import bcrypt from 'bcrypt';
 

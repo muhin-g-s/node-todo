@@ -1,5 +1,5 @@
-import { UserService } from '../../services/user';
-import { UserEntity } from '../../entities/user';
+import { UserService } from '@/domain/services/user';
+import { UserEntity } from '@/domain/entities/user';
 
 export class UseCaseUser {
 	constructor(private userService: UserService) {}

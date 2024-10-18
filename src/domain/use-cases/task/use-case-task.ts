@@ -1,6 +1,6 @@
-import { checkBelongingTaskToUser } from '../../../domain/lib';
-import { TaskEntity } from '../../../domain/entities/task';
-import { TaskService } from '../../../domain/services/task';
+import { checkBelongingTaskToUser } from '@/domain/lib';
+import { TaskService } from '@/domain/services/task';
+import { TaskEntity } from '@/domain/entities/task';
 
 export class UseCaseTask {
 	constructor(private taskService: TaskService) {}

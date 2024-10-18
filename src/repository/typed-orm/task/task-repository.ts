@@ -1,6 +1,6 @@
 import { EntityManager, Repository } from 'typeorm';
-import { TaskEntity } from '../../../domain/entities/task';
-import { ITaskRepository } from '../../../repository/task';
+import { TaskEntity } from '@/domain/entities/task';
+import { ITaskRepository } from '@/repository/task';
 import { Task } from './dto';
 
 export class TaskRepository implements ITaskRepository {

@@ -1,5 +1,5 @@
-import { IAuthManager } from './../../pkg/auth-manager/interface-auth-manager';
 import { FastifyInstance, FastifyReply, FastifyRequest, HookHandlerDoneFunction } from 'fastify';
+import { IAuthManager } from '@/pkg/auth-manager';
 
 export const userId = 'userId';
 

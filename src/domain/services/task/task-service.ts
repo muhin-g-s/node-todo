@@ -1,5 +1,5 @@
-import { TaskEntity } from '../../../domain/entities/task';
-import { ITaskRepository } from '../../../repository/task';
+import { TaskEntity } from '@/domain/entities/task';
+import { ITaskRepository } from '@/repository/task';
 
 
 export class TaskService {

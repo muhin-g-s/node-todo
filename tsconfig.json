@@ -14,9 +14,10 @@
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {
-      "*": ["node_modules/*"]
+      "@/*": ["src/*"]
     },
     "noImplicitAny": false,
-    "lib": ["es6"]
-  }
+    "lib": ["es6"],
+  },
+	"include": ["src/*"],
 }

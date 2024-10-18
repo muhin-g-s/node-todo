@@ -1,4 +1,4 @@
-import { UserEntity } from '../../domain/entities/user'
+import { UserEntity } from '@/domain/entities/user'
 
 export interface IUserRepository {
 	create(userEntity: UserEntity): Promise<UserEntity>

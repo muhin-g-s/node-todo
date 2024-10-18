@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyPluginOptions } from 'fastify';
-import { UseCaseTask } from '../../domain/use-cases/task';
-import { TaskEntity } from '../../domain/entities/task';
+import { UseCaseTask } from '@/domain/use-cases/task';
+import { TaskEntity } from '@/domain/entities/task';
 import { AuthMiddleware, userId } from '../middleware/auth';
 
 export const prefixTask = '/task';

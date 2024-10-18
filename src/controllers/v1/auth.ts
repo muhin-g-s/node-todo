@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyPluginOptions } from 'fastify';
-import { UseCaseAuth } from '../../domain/use-cases/user';
-import { UserEntity } from '../../domain/entities/user';
+import { UseCaseAuth } from '@/domain/use-cases/user';
+import { UserEntity } from '@/domain/entities/user';
 
 export const prefixAuth = '/auth';
 

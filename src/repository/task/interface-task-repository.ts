@@ -1,4 +1,4 @@
-import { TaskEntity } from '../../domain/entities/task';
+import { TaskEntity } from '@/domain/entities/task';
 
 export interface ITaskRepository {
 	findManyByUserId(userId: string): Promise<TaskEntity[]>;
