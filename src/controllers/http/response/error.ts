@@ -1,17 +1,20 @@
-import { HttpErrorCode, IHttpResponse } from './base';
+import { HttpErrorCode, httpResponseBase } from './base';
 import { FastifyReply, FastifyRequest } from 'fastify';
+import { z } from 'zod';
 
-interface IErrorDetails {
-	method: string,
-	url: string,
-}
+const errorDetails = z.object({
+	method: z.string(),
+	url: z.string()
+})
 
-interface IHttpError extends IHttpResponse {
-	error: string;
-	details: IErrorDetails,
-}
+const httpErrorResponse = httpResponseBase.extend({
+	error: z.string(),
+	details: errorDetails
+})
 
-const createErrorInternal = (method: string, url: string): IHttpError => ({
+type HttpErrorResponseType = z.infer<typeof httpErrorResponse>;
+
+const createErrorInternal = (method: string, url: string): HttpErrorResponseType => ({
 		error: 'Internal error',
 		code: HttpErrorCode.InternalError,
 		details: {
@@ -20,7 +23,7 @@ const createErrorInternal = (method: string, url: string): IHttpError => ({
 		}
 	})
 
-const createInvalidResponse = (method: string, url: string): IHttpError => ({
+const createInvalidResponse = (method: string, url: string): HttpErrorResponseType => ({
 		error: 'Invalid response',
 		code: HttpErrorCode.InvalidResponse,
 		details: {
@@ -29,7 +32,7 @@ const createInvalidResponse = (method: string, url: string): IHttpError => ({
 		}
 	})
 
-const createErrorUnauthorized = (method: string, url: string): IHttpError => ({
+const createErrorUnauthorized = (method: string, url: string): HttpErrorResponseType => ({
 		error: 'Unauthorized',
 		code: HttpErrorCode.Unauthorized,
 		details: {
@@ -38,7 +41,7 @@ const createErrorUnauthorized = (method: string, url: string): IHttpError => ({
 		}
 	})
 	
-const createErrorNotFound = (method: string, url: string): IHttpError => ({
+const createErrorNotFound = (method: string, url: string): HttpErrorResponseType => ({
 	error: 'Not Found',
 	code: HttpErrorCode.NotFound,
 	details: {
