@@ -1,20 +1,22 @@
 import "reflect-metadata"
 
-import { prefixTask, TaskHandler } from './controllers/v1/task';
+import { TaskHandler,prefixTask } from './controllers/http/v1/task';
+import {prefixAuth, AuthHandler} from './controllers/http/v1/auth';
+import { AuthMiddleware } from './controllers/http/middleware/auth';
+import { prefixUser, UserHandler } from './controllers/http/v1/user';
 import { UseCaseTask } from './domain/use-cases/task/use-case-task';
 import { TaskService } from './domain/services/task/task-service';
 import { TaskRepository } from './repository/typed-orm/task/task-repository';
 import { UserService } from './domain/services/user/user-service';
 import Fastify, { FastifyInstance } from 'fastify'
-import {prefixAuth, AuthHandler} from './controllers/v1/auth';
 import { AuthManager } from './pkg/auth-manager/index';
 import { UseCaseAuth, UseCaseUser } from './domain/use-cases/user/index';
 import { UserRepository } from './repository/typed-orm/user/index';
 import { sqliteClient } from './pkg/db-client/index';
-import { AuthMiddleware } from './controllers/middleware/auth';
-import { prefixUser, UserHandler } from './controllers/v1/user';
+import { serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod';
 
 const globalPrefix = 'api/v1' as const;
+
 
 try {
 	(async () => {
@@ -40,6 +42,9 @@ try {
 			const server: FastifyInstance = Fastify();
 			authMiddleware.addRequestUserId(server);
 			
+			server.setValidatorCompiler(validatorCompiler);
+			server.setSerializerCompiler(serializerCompiler);
+
 			await server.register(authHandler.registerRoutes, { prefix: globalPrefix + prefixAuth });
 			await server.register(userHandler.registerRoutes, {prefix: globalPrefix + prefixUser });
 			await server.register(taskHandler.registerRoutes, {prefix: globalPrefix + prefixTask });

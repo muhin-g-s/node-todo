@@ -14,7 +14,7 @@ export class TaskHandler {
 
 		instance.get('/:uuid', async (request, reply) => {
 
-			const task = await this.useCaseTask.getTask(request.params['uuid'], request[userId]);
+			const task = await this.useCaseTask.getTask((request.params as {uuid: string})['uuid'], request[userId]);
 
 			const response = {
 				msg: 'get task',
@@ -30,7 +30,7 @@ export class TaskHandler {
 				return reply.code(401).send({ error: 'not valid' })
 			}
 
-			const task = await this.useCaseTask.updateTask(request.params['uuid'], request[userId]);
+			const task = await this.useCaseTask.updateTask(requestData, request[userId]);
 
 			const response = {
 				msg: 'update',
@@ -42,7 +42,7 @@ export class TaskHandler {
 
 		instance.delete('/:uuid', async (request, reply) => {
 
-			await this.useCaseTask.deleteTask(request.params['uuid'], request[userId]);
+			await this.useCaseTask.deleteTask((request.params as {uuid: string})['uuid'], request[userId]);
 
 			return reply.code(200).send({status: 'ok'});
 		})
