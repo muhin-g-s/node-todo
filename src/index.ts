@@ -13,7 +13,9 @@ import { AuthManager } from './pkg/auth-manager/index';
 import { UseCaseAuth, UseCaseUser } from './domain/use-cases/user/index';
 import { UserRepository } from './repository/typed-orm/user/index';
 import { sqliteClient } from './pkg/db-client/index';
-import { serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod';
+import { jsonSchemaTransform, serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod';
+import fastifySwagger from '@fastify/swagger';
+import fastifySwaggerUi from '@fastify/swagger-ui';
 
 const globalPrefix = 'api/v1' as const;
 
@@ -44,6 +46,21 @@ try {
 			
 			server.setValidatorCompiler(validatorCompiler);
 			server.setSerializerCompiler(serializerCompiler);
+
+			server.register(fastifySwagger, {
+				openapi: {
+					info: {
+						title: 'node todo',
+						version: '1.0.0',
+					},
+					servers: [],
+				},
+				transform: jsonSchemaTransform,
+			});
+
+			server.register(fastifySwaggerUi, {
+				routePrefix: '/doc',
+			});
 
 			await server.register(authHandler.registerRoutes, { prefix: globalPrefix + prefixAuth });
 			await server.register(userHandler.registerRoutes, {prefix: globalPrefix + prefixUser });
