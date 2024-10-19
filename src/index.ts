@@ -80,7 +80,7 @@ try {
 			await server.register(taskHandler.registerRoutes, {prefix: globalPrefix + prefixTask });
 
 			const port = await server.listen({ port: 8080 });
-			console.log(`Server at 8080 ${port}`);
+			console.log(`Server at 8080 ${port}/doc`);
 	})();
 } catch (err) {
 	console.error(err);

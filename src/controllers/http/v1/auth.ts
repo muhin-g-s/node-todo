@@ -1,7 +1,9 @@
-import { LoginResponseDtoType, LoginResponseDto, RegisterRequestDto, RegisterResponseDtoType, LoginRequestDto, RegisterResponseDto } from '../dto/auth';
+import { LoginResponseDto, RegisterRequestDto, LoginRequestDto, RegisterResponseDto } from '../dto/auth';
 import { FastifyInstance, FastifyPluginOptions, FastifyReply, FastifyRequest } from 'fastify';
 import { UseCaseAuth } from '@/domain/use-cases/user';
 import { UserEntity } from '@/domain/entities/user';
+import { createResponseSuccess } from '../response/success';
+import { httpErrorResponseAlreadyExists, httpErrorResponseErrorInternal, httpErrorResponseErrorUnauthorized, httpErrorResponseInvalidResponse } from '../response/error';
 
 export const prefixAuth = '/auth';
 
@@ -16,12 +18,10 @@ export class AuthHandler {
 
 		const { username, id } = await this.useCaseAuth.register(user);
 
-		const response: RegisterResponseDtoType = {
+		return createResponseSuccess(reply, {	
 			username,
 			id:id ?? ''
-		}
-
-		return reply.code(200).send(response);
+		});
 	}
 
 	private loginHandler = async ({ body }: FastifyRequest, reply: FastifyReply) => {
@@ -31,30 +31,46 @@ export class AuthHandler {
 
 		const { token, userId, username } = await this.useCaseAuth.login(user);
 
-		const response: LoginResponseDtoType = {
-			id: userId,
+		return createResponseSuccess(reply, {	
 			username,
-		}
-
-		return reply.code(200).header('authorization', token).send(response);
+			id: userId,
+		}, {
+			authorization: token,
+		});
 	}
 
 	registerRoutes = async (instance: FastifyInstance, options: FastifyPluginOptions): Promise<void> => {
 		instance.route({
 			method: 'POST',
 			url: '/register',
-			schema: { body: RegisterRequestDto, response: {
-				'200' : RegisterResponseDto,
-			} },
+			schema: {
+				description: 'register',
+				tags: ['auth'],
+				body: RegisterRequestDto, 
+				response: {
+					200 : RegisterResponseDto,		
+					400 : httpErrorResponseInvalidResponse,
+					409 : httpErrorResponseAlreadyExists,
+					500 : httpErrorResponseErrorInternal
+				} 
+			},
 			handler: this.registerHandler
 		})
 
 		instance.route({
 			method: 'POST',
 			url: '/login',
-			schema: { body: LoginRequestDto, response: {
-				'200' : LoginResponseDto,
-			} },
+			schema: {
+				description: 'login',
+				tags: ['auth'],
+				body: LoginRequestDto, 
+				response: {
+					200 : LoginResponseDto,
+					400 : httpErrorResponseInvalidResponse,
+					401 : httpErrorResponseErrorUnauthorized,
+					500 : httpErrorResponseErrorInternal
+				} 
+			},
 			handler: this.loginHandler
 		})
 	}

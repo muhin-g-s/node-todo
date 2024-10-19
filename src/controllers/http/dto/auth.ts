@@ -1,3 +1,4 @@
+import { httpSuccessResponse } from './../response/success';
 import { z } from 'zod';
 
 export const RegisterRequestDto = z.object({
@@ -14,16 +15,20 @@ export const LoginRequestDto = z.object({
 
 export type LoginRequestDtoType = z.infer<typeof LoginRequestDto>;
 
-export const RegisterResponseDto = z.object({
-	username: z.string(),
-	id: z.string(),
+export const RegisterResponseDto = httpSuccessResponse.extend({
+	data: z.object({
+		username: z.string(),
+		id: z.string(),
+	})
 });
 
 export type RegisterResponseDtoType = z.infer<typeof RegisterResponseDto>;
 
-export const LoginResponseDto = z.object({
-	username: z.string(),
-	id: z.string(),
+export const LoginResponseDto = httpSuccessResponse.extend({
+	data: z.object({
+		username: z.string(),
+		id: z.string(),
+	})
 });
 
 export type LoginResponseDtoType = z.infer<typeof LoginResponseDto>;
