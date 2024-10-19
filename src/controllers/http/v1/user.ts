@@ -17,6 +17,10 @@ export class UserHandler {
 
 			const user = await this.useCaseUser.getUser(id);
 
+			if(!user) {
+				return reply.code(404).send({status: 'not-found'});
+			}
+
 			const { password, ...userWithoutPassword } = user;
 
 			const response = {

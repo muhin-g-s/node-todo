@@ -29,11 +29,11 @@ export class UserRepository implements IUserRepository {
 		);		
 	}
 
-	async findById(id: string): Promise<UserEntity> {
+	findById(id: string): Promise<UserEntity | null> {
 		return this.repository.findOneBy({id});
 	}
 
-	findByUsername(username: string): Promise<UserEntity> {
+	findByUsername(username: string): Promise<UserEntity | null> {
 		return this.repository.findOneBy({username});
 	}
 

@@ -1,5 +1,5 @@
 import { TaskEntity } from '@/domain/entities/task';
 
-export function checkBelongingTaskToUser(taskEntity: TaskEntity, userId: string): boolean {
-	return taskEntity.id === userId;
+export function checkBelongingTaskToUser(taskEntity: TaskEntity | null, userId: string): boolean {
+	return !!taskEntity && (taskEntity.id === userId);
 }

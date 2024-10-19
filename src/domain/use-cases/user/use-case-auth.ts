@@ -24,6 +24,10 @@ export class UseCaseAuth {
 	async login(userEntity: UserEntity): Promise<AuthEntity> {
 		const user = await this.userService.findByUsername(userEntity.username!);
 
+		if(!user) {
+			throw new Error('User not exist');
+		}
+
 		if(!await this.comparePassword(userEntity.password, user.password)) {
 			throw new Error('TODO password not compare');
 		}

@@ -13,7 +13,7 @@ export class TaskService {
     return this.taskRepository.update(taskEntity);
   }
 
-  getById(taskId: string): Promise<TaskEntity> {
+  getById(taskId: string): Promise<TaskEntity | null> {
     return this.taskRepository.findById(taskId);
   }
 

@@ -4,7 +4,7 @@ import { UserEntity } from '@/domain/entities/user';
 export class UseCaseUser {
 	constructor(private userService: UserService) {}
 
-	getUser(userId: string): Promise<UserEntity>{
+	getUser(userId: string): Promise<UserEntity | null>{
 		return this.userService.findById(userId);
 	}
 

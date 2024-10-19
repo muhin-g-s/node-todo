@@ -8,11 +8,11 @@ export class UserService {
 		return this.userRepository.create(userEntity);
 	}
 
-	findById(userId: string): Promise<UserEntity> {
+	findById(userId: string): Promise<UserEntity | null> {
 		return this.userRepository.findById(userId);
 	}
 
-	findByUsername(username: string): Promise<UserEntity> {
+	findByUsername(username: string): Promise<UserEntity | null> {
 		return this.userRepository.findByUsername(username);
 	}
 

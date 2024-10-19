@@ -18,7 +18,7 @@ export class TaskRepository implements ITaskRepository {
 		return this.repository.save(taskEntity);
 	}
 
-	findById(taskId: string): Promise<TaskEntity> {
+	findById(taskId: string): Promise<TaskEntity | null> {
 		return this.repository.findOneBy({id: taskId});
 	}
 

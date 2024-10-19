@@ -5,7 +5,7 @@ import { TaskEntity } from '@/domain/entities/task';
 export class UseCaseTask {
 	constructor(private taskService: TaskService) {}
 
-	async getTask(taskId: string, userId: string): Promise<TaskEntity>{
+	async getTask(taskId: string, userId: string): Promise<TaskEntity | null>{
 		const task = await this.taskService.getById(taskId);
 
 		if(checkBelongingTaskToUser(task, userId)) {
@@ -16,7 +16,7 @@ export class UseCaseTask {
 	}
 
 	async updateTask(taskEntity: TaskEntity, userId: string): Promise<TaskEntity>{
-		const task = await this.taskService.getById(taskEntity.id);
+		const task = await this.taskService.getById(taskEntity.id ?? '');
 
 		if(checkBelongingTaskToUser(task, userId)) {
 			throw new Error('task not belonging user');
