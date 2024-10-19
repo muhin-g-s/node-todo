@@ -1,3 +1,4 @@
+import { createResponseErrorInternal, createResponseInvalidResponse, createResponseNotFound } from './controllers/http/response/error';
 import "reflect-metadata"
 
 import { TaskHandler,prefixTask } from './controllers/http/v1/task';
@@ -13,7 +14,7 @@ import { AuthManager } from './pkg/auth-manager/index';
 import { UseCaseAuth, UseCaseUser } from './domain/use-cases/user/index';
 import { UserRepository } from './repository/typed-orm/user/index';
 import { sqliteClient } from './pkg/db-client/index';
-import { jsonSchemaTransform, serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod';
+import { hasZodFastifySchemaValidationErrors, isResponseSerializationError, jsonSchemaTransform, serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUi from '@fastify/swagger-ui';
 
@@ -46,6 +47,18 @@ try {
 			
 			server.setValidatorCompiler(validatorCompiler);
 			server.setSerializerCompiler(serializerCompiler);
+
+			server.setErrorHandler((err, req, reply) => {
+				if (hasZodFastifySchemaValidationErrors(err)) {
+						return createResponseInvalidResponse(req, reply);
+				}
+		
+				if (isResponseSerializationError(err)) {
+						return createResponseErrorInternal(req, reply);
+				}
+			})
+
+			server.setNotFoundHandler(createResponseNotFound);
 
 			server.register(fastifySwagger, {
 				openapi: {
