@@ -1,6 +1,7 @@
-import { Login, Register } from '../dto/request/auth';
+import { LoginResponseDtoType, LoginResponseDto, RegisterRequestDto, RegisterResponseDtoType, LoginRequestDto, RegisterResponseDto } from '../dto/auth';
 import { FastifyInstance, FastifyPluginOptions, FastifyReply, FastifyRequest } from 'fastify';
 import { UseCaseAuth } from '@/domain/use-cases/user';
+import { UserEntity } from '@/domain/entities/user';
 
 export const prefixAuth = '/auth';
 
@@ -8,29 +9,31 @@ export class AuthHandler {
 	constructor(private useCaseAuth: UseCaseAuth) {
 	}
 
-	private async registerHandler(request: FastifyRequest, reply: FastifyReply) {
-		const userDto = Register.parse(request.body);
+	private registerHandler = async ({ body }: FastifyRequest, reply: FastifyReply) => {
+		const userDto = RegisterRequestDto.parse(body);
 
-		const user = await this.useCaseAuth.register(userDto);
+		const user: UserEntity = {...userDto, id: ''};
 
-		const { password, ...userWithoutPassword } = user;
+		const { username, id } = await this.useCaseAuth.register(user);
 
-		const response = {
-			msg: 'register',
-			...userWithoutPassword,
+		const response: RegisterResponseDtoType = {
+			username,
+			id:id ?? ''
 		}
 
 		return reply.code(200).send(response);
 	}
 
-	private async loginHandler(request: FastifyRequest, reply: FastifyReply) {
-		const userDto = Register.parse(request.body);
+	private loginHandler = async ({ body }: FastifyRequest, reply: FastifyReply) => {
+		const userDto = LoginRequestDto.parse(body);
 
-		const { token, userId } = await this.useCaseAuth.login(userDto);
+		const user: UserEntity = {...userDto, id: ''};
 
-		const response = {
-			msg: 'login',
-			userId
+		const { token, userId, username } = await this.useCaseAuth.login(user);
+
+		const response: LoginResponseDtoType = {
+			id: userId,
+			username,
 		}
 
 		return reply.code(200).header('authorization', token).send(response);
@@ -40,14 +43,18 @@ export class AuthHandler {
 		instance.route({
 			method: 'POST',
 			url: '/register',
-			schema: { body: Register },
+			schema: { body: RegisterRequestDto, response: {
+				'200' : RegisterResponseDto,
+			} },
 			handler: this.registerHandler
 		})
 
 		instance.route({
 			method: 'POST',
 			url: '/login',
-			schema: { body: Login },
+			schema: { body: LoginRequestDto, response: {
+				'200' : LoginResponseDto,
+			} },
 			handler: this.loginHandler
 		})
 	}

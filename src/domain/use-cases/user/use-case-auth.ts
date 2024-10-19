@@ -36,7 +36,8 @@ export class UseCaseAuth {
 
 		return {
 			token,
-			userId: user.id!
+			userId: user.id,
+			username: user.username
 		}
 	}
 
