@@ -20,6 +20,7 @@ import fastifySwaggerUi from '@fastify/swagger-ui';
 
 const globalPrefix = 'api/v1' as const;
 
+console.log('test');
 
 try {
 	(async () => {
