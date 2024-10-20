@@ -1,4 +1,4 @@
-import { createResponseErrorInternal, createResponseInvalidResponse, createResponseNotFound } from './controllers/http/response/error';
+import { createResponseErrorInternal, createResponseBadRequest, createResponseNotFound } from './controllers/http/response/error';
 import "reflect-metadata"
 
 import { TaskHandler,prefixTask } from './controllers/http/v1/task';
@@ -50,7 +50,7 @@ try {
 
 			server.setErrorHandler((err, req, reply) => {
 				if (hasZodFastifySchemaValidationErrors(err)) {
-						return createResponseInvalidResponse(req, reply);
+						return createResponseBadRequest(req, reply);
 				}
 		
 				if (isResponseSerializationError(err)) {
