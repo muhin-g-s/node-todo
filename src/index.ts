@@ -5,10 +5,10 @@ import { TaskHandler,prefixTask } from './controllers/http/v1/task';
 import {prefixAuth, AuthHandler} from './controllers/http/v1/auth';
 import { AuthMiddleware } from './controllers/http/middleware/auth';
 import { prefixUser, UserHandler } from './controllers/http/v1/user';
-import { UseCaseTask } from './domain/use-cases/task/use-case-task';
-import { TaskService } from './domain/services/task/task-service';
+import { UseCaseTask } from './domain/use-cases/task';
+import { TaskService } from './domain/services/task/';
 import { TaskRepository } from './repository/typed-orm/task/task-repository';
-import { UserService } from './domain/services/user/user-service';
+import { UserService } from './domain/services/user';
 import Fastify, { FastifyInstance } from 'fastify'
 import { AuthManager } from './pkg/auth-manager/index';
 import { UseCaseAuth, UseCaseUser } from './domain/use-cases/user/index';

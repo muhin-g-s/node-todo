@@ -1,10 +1,14 @@
-import { IAuthManager } from '@/pkg/auth-manager';
 import { AuthEntity } from '@/domain/entities/user';
 import { UserEntity } from '@/domain/entities/user';
 import { UserService } from '@/domain/services/user';
 
 import bcrypt from 'bcrypt';
 import { InternalServerError, UserOperationError, UserOperationErrorMessages } from '@/domain/errors';
+
+interface IAuthManager {
+	createToken(data: string): string
+	getDataFromToken(token: string): string
+}
 
 export class UseCaseAuth {
 	constructor(private authManager: IAuthManager, private userService: UserService) {}

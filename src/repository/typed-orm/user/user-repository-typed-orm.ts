@@ -1,9 +1,8 @@
 import { EntityManager, Repository } from 'typeorm';
 import { UserEntity } from '@/domain/entities/user';
 import { User } from './dto';
-import { IUserRepository } from '@/repository/user';
 
-export class UserRepository implements IUserRepository {
+export class UserRepository {
 
 	private repository: Repository<User>;
 
