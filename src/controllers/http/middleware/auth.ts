@@ -1,4 +1,5 @@
 import { FastifyInstance, FastifyReply, FastifyRequest, HookHandlerDoneFunction } from 'fastify';
+import { createResponseErrorUnauthorized } from '../response/error';
 interface IAuthManager {
 	createToken(data: string): string
 	getDataFromToken(token: string): string
@@ -14,14 +15,14 @@ export class AuthMiddleware {
 		const token = request.headers.authorization;
 
 		if(!token) {
-			return reply.code(401).send({ error: 'Unauthorized' });
+			return createResponseErrorUnauthorized(request, reply);
 		}
 
 		try {
 			const id = this.authManager.getDataFromToken(token);
 			request[userId] = id;
 		} catch {
-			return reply.code(403).send({ error: `Not verify` });
+			return createResponseErrorUnauthorized(request, reply);
 		}
 
 		done();
