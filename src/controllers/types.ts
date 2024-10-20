@@ -1,1 +1,0 @@
-export const additionalKeyUserId = 'userId' as const
