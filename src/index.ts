@@ -67,8 +67,18 @@ try {
 						version: '1.0.0',
 					},
 					servers: [],
+					components: {
+						securitySchemes: {
+							apiKey: {
+								type: 'apiKey',
+								name: 'authorization',
+								in: 'header'
+							}
+						}
+					},
 				},
 				transform: jsonSchemaTransform,
+			
 			});
 
 			server.register(fastifySwaggerUi, {

@@ -1,7 +1,8 @@
-import { FastifyInstance, FastifyPluginOptions } from 'fastify';
+import { FastifyInstance, FastifyPluginOptions, FastifyReply, FastifyRequest } from 'fastify';
 import { UseCaseUser } from '@/domain/use-cases/user';
-import { UserEntity } from '@/domain/entities/user';
 import { AuthMiddleware, userId } from '../middleware/auth';
+import { baseHttpResponseMapping } from '../response/error';
+import { UserEntity } from '@/domain/entities/user';
 
 export const prefixUser = '/user';
 
@@ -9,11 +10,8 @@ export class UserHandler {
 	constructor(private useCaseUser: UseCaseUser, private authMiddleware: AuthMiddleware) {
 	}
 
-	registerRoutes = async (instance: FastifyInstance, options: FastifyPluginOptions): Promise<void> => {
-		instance.addHook('preHandler', this.authMiddleware.register);
-
-		instance.get('/', async (request, reply) => {
-			const id = request[userId];
+	private getUserHandler = async (req: FastifyRequest, reply: FastifyReply) => {
+			const id = req[userId];
 
 			const user = await this.useCaseUser.getUser(id);
 
@@ -28,16 +26,16 @@ export class UserHandler {
 				...userWithoutPassword,
 			}
 			return reply.code(200).send(response);
-		})
+	}
 
-		instance.patch('/', async (request, reply) => {
-			const requestData = JSON.parse(request.body as string) as UserEntity;
+	private patchUserHandler = async (req: FastifyRequest, reply: FastifyReply) => {
+			const requestData = JSON.parse(req.body as string) as UserEntity;
 
 			if(!requestData.password && !requestData.username) {
 				return reply.code(401).send({ error: 'not valid' })
 			}
 
-			const id = request[userId];
+			const id = req[userId];
 
 			const user = await this.useCaseUser.updateUser({
 				...requestData,
@@ -51,14 +49,59 @@ export class UserHandler {
 				...userWithoutPassword,
 			}
 			return reply.code(200).send(response);
-		})
+	}
 
-		instance.delete('/', async (request, reply) => {
-			const id = request[userId];
+	private deleteUserHandler = async (req: FastifyRequest, reply: FastifyReply) => {
+			const id = req[userId];
 
 			await this.useCaseUser.deleteUser(id);
 
 			return reply.code(200).send({status: 'ok'});
+	}
+
+	registerRoutes = async (instance: FastifyInstance, options: FastifyPluginOptions): Promise<void> => {
+		instance.addHook('preHandler', this.authMiddleware.register);
+
+		instance.route({
+			method: 'GET',
+			url: '/',
+			schema: {
+				description: 'get user',
+				tags: ['user'],
+				security: [{ 'apiKey': [] }],
+				response: {
+					...baseHttpResponseMapping
+				} 
+			},
+			handler: this.getUserHandler
+		})
+
+		instance.route({
+			method: 'PATCH',
+			url: '/',
+			schema: {
+				description: 'patch user',
+				tags: ['user'],
+				security: [{ 'apiKey': [] }],
+				response: {
+					...baseHttpResponseMapping
+				} 
+			},
+			handler: this.patchUserHandler
+		})
+
+		instance.route({
+			method: 'DELETE',
+			url: '/',
+			schema: {
+				description: 'delete user',
+				tags: ['user'],
+				security: [{ 'apiKey': [] }],
+				response: {
+					...baseHttpResponseMapping
+				},
+			},
+			handler: this.deleteUserHandler
 		})
 	}
 }
