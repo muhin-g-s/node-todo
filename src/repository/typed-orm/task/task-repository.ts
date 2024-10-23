@@ -14,7 +14,7 @@ export class TaskRepository {
 	}
 
 	create(taskEntity: TaskEntity): Promise<TaskEntity>{
-		return this.repository.save(taskEntity);
+		return this.repository.save(this.mapUserEntity(taskEntity));
 	}
 
 	findById(taskId: string): Promise<TaskEntity | null> {
@@ -22,10 +22,26 @@ export class TaskRepository {
 	}
 
 	update(taskEntity: TaskEntity): Promise<TaskEntity> {
-		return this.repository.save(taskEntity);
+		return this.repository.save(this.mapUserEntity(taskEntity));
 	}
 
 	async delete(taskId: string): Promise<void> {
 		await this.repository.delete({id: taskId});
+	}
+
+	private mapUserEntity(taskEntity: TaskEntity): Task {
+
+		const taskDto = new Task();
+
+		if(taskEntity.id) {
+			taskEntity.id = taskEntity.id
+		}
+
+		taskDto.description = taskEntity.description;
+		taskDto.title = taskEntity.title;
+		taskDto.userId = taskEntity.userId;
+		taskDto.isCompleted = taskEntity.isCompleted;
+		
+		return taskDto;
 	}
 }

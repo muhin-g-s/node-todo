@@ -4,7 +4,7 @@ import { FastifyReply } from 'fastify';
 type Primitive = string | number | boolean | null | undefined | Date;
 
 type POJO = {
-  [key: string]: Primitive | POJO | Array<Primitive | POJO>;
+  [key: string | symbol | number]: Primitive | POJO | Array<Primitive | POJO>;
 };
 
 type NotEmpty<T> = keyof T extends never ? never : T

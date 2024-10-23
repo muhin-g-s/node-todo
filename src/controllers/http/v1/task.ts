@@ -1,8 +1,19 @@
+import { 
+	CreateTaskRequestDto, 
+	GetTaskResponseDto, 
+	PatchTaskRequestDto, 
+	DeleteTaskResponseDto, 
+	PatchTaskResponseDto, 
+	CreateTaskResponseDto, 
+	GetAllTaskResponseDto, 
+	GetNotCompleteTaskResponseDto,
+	GetCompleteTaskResponseDto
+} from './../dto/task';
 import { FastifyInstance, FastifyPluginOptions, FastifyReply, FastifyRequest } from 'fastify';
 import { UseCaseTask } from '@/domain/use-cases/task';
-import { TaskEntity } from '@/domain/entities/task';
 import { AuthMiddleware, userId } from '../middleware/auth';
 import { baseHttpResponseMapping } from '../response/error';
+import { createResponseSuccess } from '../response/success';
 
 export const prefixTask = '/task';
 
@@ -11,93 +22,58 @@ export class TaskHandler {
 	}
 
 	private getTaskHandler = async (req: FastifyRequest, reply: FastifyReply) => {
-		const task = await this.useCaseTask.getTask((req.params as {uuid: string})['uuid'], req[userId]);
+		const taskEntity = await this.useCaseTask.getTask((req.params as {uuid: string})['uuid'], req[userId]);
 
-		const response = {
-			msg: 'get task',
-			...task,
+		if(taskEntity) {
+			return createResponseSuccess(reply, taskEntity as any);
+		} else {
+			return createResponseSuccess(reply, [] as any);
 		}
-		return reply.code(200).send(response);
 	}
 
 	private patchTaskHandler = async (req: FastifyRequest, reply: FastifyReply) => {
-		const requestData = JSON.parse(req.body as string) as TaskEntity;
+		const patchTaskRequestDto = PatchTaskRequestDto.parse(req.body);
 
-		if(!requestData.description && !requestData.title && !requestData.isCompleted) {
-			return reply.code(401).send({ error: 'not valid' })
-		}
+		const task = await this.useCaseTask.updateTask(
+			{...patchTaskRequestDto, id: '', createdAt: null, updatedAt: null, deleteAt: null}, 
+			req[userId]
+		);
 
-		const task = await this.useCaseTask.updateTask(requestData, req[userId]);
-
-		const response = {
-			msg: 'update',
-			...task,
-		}
-
-		return reply.code(200).send(response);
+		return createResponseSuccess(reply, task as any);
 	}
 
 	private deleteTaskHandler = async (req: FastifyRequest, reply: FastifyReply) => {
 		await this.useCaseTask.deleteTask((req.params as {uuid: string})['uuid'], req[userId]);
 
-		return reply.code(200).send({status: 'ok'});
+		return createResponseSuccess(reply, {status: 'ok'});
 	}
 
 	private createTaskHandler = async (req: FastifyRequest, reply: FastifyReply) => {
-		const requestData = JSON.parse(req.body as string) as TaskEntity;
+		const taskDto = CreateTaskRequestDto.parse(req.body);
 
-		if(!requestData.description || !requestData.title || !requestData.isCompleted) {
-			return reply.code(401).send({ error: 'not valid' })
-		}
+		const task = await this.useCaseTask.create(
+			{...taskDto, id: '', userId: req[userId], createdAt: null, updatedAt: null, deleteAt: null}
+		);
 
-		const newTask: TaskEntity = {
-			userId: req[userId],
-			title: requestData.title,
-			isCompleted: requestData.isCompleted,
-			description: requestData.description,
-		};
-
-		const task = await this.useCaseTask.create(newTask);
-
-		const response = {
-			msg: 'create',
-			...task,
-		}
-
-		return reply.code(200).send(response);
+		return createResponseSuccess(reply, task as any);
 	}
 
 	private getAllTaskHandler = async (req: FastifyRequest, reply: FastifyReply) => {
 		const tasks = await this.useCaseTask.getAll(req[userId]);
 
-		const response = {
-			msg: 'all',
-			tasks: [...tasks],
-		}
-
-		return reply.code(200).send(response);
+		return createResponseSuccess(reply, tasks as any);
 	}
 
 	private getNotCompetedTaskHandler = async (req: FastifyRequest, reply: FastifyReply) => {
-		const tasks = await this.useCaseTask.getNotCompleted(req[userId]);
+		const tasks = await this.useCaseTask.getAll(req[userId]);
 
-		const response = {
-			msg: 'notCompeted',
-			tasks: [...tasks],
-		}
-
-		return reply.code(200).send(response);
+		return createResponseSuccess(reply, tasks as any);
 	}
 
 	private getCompetedTaskHandler = async (req: FastifyRequest, reply: FastifyReply) => {
-		const tasks = await this.useCaseTask.getCompleted(req[userId]);
+		const tasks = await this.useCaseTask.getAll(req[userId]);
 
-		const response = {
-			msg: 'competed',
-			tasks: [...tasks],
-		}
-
-		return reply.code(200).send(response);
+		return createResponseSuccess(reply, tasks as any);
 	}
 
 	registerRoutes = async (instance: FastifyInstance, options: FastifyPluginOptions): Promise<void> => {
@@ -111,6 +87,7 @@ export class TaskHandler {
 				tags: ['task'],
 				security: [{ 'apiKey': [] }],
 				response: {
+					200: GetTaskResponseDto,
 					...baseHttpResponseMapping
 				} 
 			},
@@ -123,8 +100,10 @@ export class TaskHandler {
 			schema: {
 				description: 'patch user',
 				tags: ['task'],
+				body: PatchTaskRequestDto,
 				security: [{ 'apiKey': [] }],
 				response: {
+					200: PatchTaskResponseDto,
 					...baseHttpResponseMapping
 				} 
 			},
@@ -139,6 +118,7 @@ export class TaskHandler {
 				tags: ['task'],
 				security: [{ 'apiKey': [] }],
 				response: {
+					200: DeleteTaskResponseDto,
 					...baseHttpResponseMapping
 				} 
 			},
@@ -151,8 +131,10 @@ export class TaskHandler {
 			schema: {
 				description: 'create task',
 				tags: ['task'],
+				body: CreateTaskRequestDto,
 				security: [{ 'apiKey': [] }],
 				response: {
+					200: CreateTaskResponseDto,
 					...baseHttpResponseMapping
 				} 
 			},
@@ -167,6 +149,7 @@ export class TaskHandler {
 				tags: ['task'],
 				security: [{ 'apiKey': [] }],
 				response: {
+					200: GetAllTaskResponseDto,
 					...baseHttpResponseMapping
 				} 
 			},
@@ -181,6 +164,7 @@ export class TaskHandler {
 				tags: ['task'],
 				security: [{ 'apiKey': [] }],
 				response: {
+					200: GetNotCompleteTaskResponseDto,
 					...baseHttpResponseMapping
 				} 
 			},
@@ -195,6 +179,7 @@ export class TaskHandler {
 				tags: ['task'],
 				security: [{ 'apiKey': [] }],
 				response: {
+					200: GetCompleteTaskResponseDto,
 					...baseHttpResponseMapping
 				} 
 			},

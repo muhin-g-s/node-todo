@@ -1,4 +1,5 @@
 import { TaskEntity } from '@/domain/entities/task';
+
 interface ITaskRepository {
 	findManyByUserId(userId: string): Promise<TaskEntity[]>;
 	create(taskEntity: TaskEntity): Promise<TaskEntity>;

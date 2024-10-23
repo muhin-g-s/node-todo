@@ -1,7 +1,6 @@
 import { httpSuccessResponse } from './../response/success';
 import { z } from 'zod';
 
-
 export const GetUserResponseDto = httpSuccessResponse.extend({
 	data: z.object({
 		id: z.string(),

@@ -1,24 +1,24 @@
 export class TaskEntity {
-	id?: string;
+	id: string;
 	userId: string;
 	title: string;
 	description: string;
 	isCompleted: boolean;
-	createdAt?: Date;
-	updatedAt?: Date;
-	deleteAt?: Date;
+	createdAt: Date | null;
+	updatedAt: Date | null;
+	deleteAt: Date | null;
 
 	constructor(
     id: string,
     userId: string,
     title: string,
     description: string,
-    isCompleted: boolean,
-    createdAt: Date,
-    updatedAt: Date,
-    deleteAt: Date
+    isCompleted: false,
+    createdAt: Date, 
+		updatedAt: Date, 
+		deleteAt: Date
   ) {
-    this.id = id;
+		this.id = id;
     this.userId = userId;
     this.title = title;
     this.description = description;

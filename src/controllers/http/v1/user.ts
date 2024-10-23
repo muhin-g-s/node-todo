@@ -42,7 +42,7 @@ export class UserHandler {
 
 			const id = req[userId];
 
-			const userEntity: UserEntity = {...patchUserRequestDto, id: '', createdAt: null, updatedAt: null, deleteAt: null};
+			const userEntity: UserEntity = {...patchUserRequestDto, id, createdAt: null, updatedAt: null, deleteAt: null};
 
 			const updatedUser = await this.useCaseUser.updateUser({
 				...userEntity,
