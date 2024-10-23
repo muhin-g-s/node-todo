@@ -70,15 +70,19 @@ export class UserService {
 		}
 	}
 
-	private isPasswordTooSimple(password: string): boolean {
-		if(password === '') {
+	private isPasswordTooSimple(password: string | undefined): boolean {
+		if(password === undefined || password === '') {
 			return true;
 		}
 
 		return false;
 	}
 
-	private generateHashPassword(password: string): Promise<string> {
+	private generateHashPassword(password: string | undefined): Promise<string> {
+		if(password === undefined) {
+			throw new Error('password is not be undefined');
+		}
+
 		return bcrypt.hash(password, 10);
 	}
 }

@@ -10,22 +10,8 @@ export class UserRepository {
 		this.repository = entityManager.getRepository(User);
 	}
 
-	async create(userEntity: UserEntity): Promise<UserEntity> {
-		const userDto = new User();
-
-		userDto.username = userEntity.username;
-		userDto.password = userEntity.password;
-
-		const returnUserDto = await this.repository.save(userDto);
-
-		return new UserEntity(
-			returnUserDto.id, 
-			returnUserDto.username, 
-			returnUserDto.password, 
-			returnUserDto.createdAt, 
-			returnUserDto.updatedAt, 
-			returnUserDto.deleteAt
-		);		
+	create(userEntity: UserEntity): Promise<UserEntity> {
+		return this.repository.save(this.mapUserEntity(userEntity));
 	}
 
 	findById(id: string): Promise<UserEntity | null> {
@@ -37,10 +23,24 @@ export class UserRepository {
 	}
 
 	update(userEntity: UserEntity): Promise<UserEntity> {
-		return this.repository.save({...userEntity, id: userEntity.id});
+		return this.repository.save(this.mapUserEntity(userEntity));
 	}
 
 	async delete(userId: string): Promise<void> {
 		await this.repository.delete({id: userId});
+	}
+
+	private mapUserEntity(userEntity: UserEntity): User {
+
+		const userDto = new User();
+
+		if(userEntity.id) {
+			userDto.id = userEntity.id
+		}
+
+		userDto.password = userEntity.password;
+		userDto.username = userEntity.username;
+		
+		return userDto;
 	}
 }

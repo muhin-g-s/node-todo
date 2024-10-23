@@ -1,4 +1,4 @@
-import { LoginResponseDto, RegisterRequestDto, LoginRequestDto, RegisterResponseDto } from '../dto/auth';
+import { LoginResponseDto, RegisterRequestDto, LoginRequestDto, RegisterResponseDto, RegisterResponseDtoType } from '../dto/auth';
 import { FastifyInstance, FastifyPluginOptions, FastifyReply, FastifyRequest } from 'fastify';
 import { UseCaseAuth } from '@/domain/use-cases/user';
 import { UserEntity } from '@/domain/entities/user';
@@ -15,14 +15,14 @@ export class AuthHandler {
 	private registerHandler = async (req: FastifyRequest, reply: FastifyReply) => {
 		const userDto = RegisterRequestDto.parse(req.body);
 
-		const user: UserEntity = {...userDto, id: ''};
+		const user: UserEntity = {...userDto, id: '', createdAt: null, updatedAt: null, deleteAt: null};
 
 		try {
 			const { username, id } = await this.useCaseAuth.register(user);
 
 			return createResponseSuccess(reply, {	
 				username,
-				id:id ?? ''
+				id:id ?? '',
 			});
 		} catch (e) {
 			const nonBusinessErrorResponse = catchNonBusinessErrors(e, req, reply);
@@ -49,7 +49,7 @@ export class AuthHandler {
 	private loginHandler = async (req: FastifyRequest, reply: FastifyReply) => {
 		const userDto = LoginRequestDto.parse(req.body);
 
-		const user: UserEntity = {...userDto, id: ''};
+		const user: UserEntity = {...userDto, id: '', createdAt: null, updatedAt: null, deleteAt: null};
 
 		try {
 			const { token, userId, username } = await this.useCaseAuth.login(user);

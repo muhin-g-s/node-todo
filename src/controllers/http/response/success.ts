@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { FastifyReply } from 'fastify';
 
-type Primitive = string | number | boolean | null | undefined;
+type Primitive = string | number | boolean | null | undefined | Date;
 
 type POJO = {
   [key: string]: Primitive | POJO | Array<Primitive | POJO>;

@@ -1,8 +1,10 @@
+import { DeleteUserResponseDto, GetUserResponseDto, PatchUserRequestDto, PatchUserResponseDto } from './../dto/user';
 import { FastifyInstance, FastifyPluginOptions, FastifyReply, FastifyRequest } from 'fastify';
 import { UseCaseUser } from '@/domain/use-cases/user';
 import { AuthMiddleware, userId } from '../middleware/auth';
-import { baseHttpResponseMapping } from '../response/error';
+import { baseHttpResponseMapping, createResponseBadRequest } from '../response/error';
 import { UserEntity } from '@/domain/entities/user';
+import { createResponseSuccess } from '../response/success';
 
 export const prefixUser = '/user';
 
@@ -16,39 +18,29 @@ export class UserHandler {
 			const user = await this.useCaseUser.getUser(id);
 
 			if(!user) {
-				return reply.code(404).send({status: 'not-found'});
+				return createResponseBadRequest(req, reply);
 			}
 
 			const { password, ...userWithoutPassword } = user;
 
-			const response = {
-				msg: 'get user',
-				...userWithoutPassword,
-			}
-			return reply.code(200).send(response);
+			return createResponseSuccess(reply, userWithoutPassword);
 	}
 
 	private patchUserHandler = async (req: FastifyRequest, reply: FastifyReply) => {
-			const requestData = JSON.parse(req.body as string) as UserEntity;
-
-			if(!requestData.password && !requestData.username) {
-				return reply.code(401).send({ error: 'not valid' })
-			}
+			const patchUserRequestDto = PatchUserRequestDto.parse(req.body);
 
 			const id = req[userId];
 
-			const user = await this.useCaseUser.updateUser({
-				...requestData,
+			const userEntity: UserEntity = {...patchUserRequestDto, id: '', createdAt: null, updatedAt: null, deleteAt: null};
+
+			const updatedUser = await this.useCaseUser.updateUser({
+				...userEntity,
 				id
 			});
 
-			const { password, ...userWithoutPassword } = user;
+			const { password, ...userWithoutPassword } = updatedUser;
 
-			const response = {
-				msg: 'update',
-				...userWithoutPassword,
-			}
-			return reply.code(200).send(response);
+			return createResponseSuccess(reply, userWithoutPassword);
 	}
 
 	private deleteUserHandler = async (req: FastifyRequest, reply: FastifyReply) => {
@@ -56,7 +48,7 @@ export class UserHandler {
 
 			await this.useCaseUser.deleteUser(id);
 
-			return reply.code(200).send({status: 'ok'});
+			return createResponseSuccess(reply, {status: 'ok'});
 	}
 
 	registerRoutes = async (instance: FastifyInstance, options: FastifyPluginOptions): Promise<void> => {
@@ -70,6 +62,7 @@ export class UserHandler {
 				tags: ['user'],
 				security: [{ 'apiKey': [] }],
 				response: {
+					200: GetUserResponseDto,
 					...baseHttpResponseMapping
 				} 
 			},
@@ -83,7 +76,9 @@ export class UserHandler {
 				description: 'patch user',
 				tags: ['user'],
 				security: [{ 'apiKey': [] }],
+				body: PatchUserRequestDto,
 				response: {
+					200: PatchUserResponseDto,
 					...baseHttpResponseMapping
 				} 
 			},
@@ -98,6 +93,7 @@ export class UserHandler {
 				tags: ['user'],
 				security: [{ 'apiKey': [] }],
 				response: {
+					200: DeleteUserResponseDto,
 					...baseHttpResponseMapping
 				},
 			},

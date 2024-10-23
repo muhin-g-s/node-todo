@@ -2,9 +2,9 @@ export class UserEntity {
 	id: string;
 	username: string;
 	password: string;
-	createdAt?: Date;
-	updatedAt?: Date;
-	deleteAt?: Date;
+	createdAt: Date | null;
+	updatedAt: Date | null;
+	deleteAt: Date | null;
 
 	constructor(id: string, username: string, password: string, createdAt: Date, updatedAt: Date, deleteAt: Date) {
 		this.id = id;
