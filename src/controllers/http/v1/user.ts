@@ -2,7 +2,7 @@ import { DeleteUserResponseDto, GetUserResponseDto, PatchUserRequestDto, PatchUs
 import { FastifyInstance, FastifyPluginOptions, FastifyReply, FastifyRequest } from 'fastify';
 import { UseCaseUser } from '@/domain/use-cases/user';
 import { AuthMiddleware, userId } from '../middleware/auth';
-import { baseHttpResponseMapping, createResponseBadRequest } from '../response/error';
+import { baseHttpResponseMapping, catchNonBusinessErrors, createResponseBadRequest } from '../response/error';
 import { UserEntity } from '@/domain/entities/user';
 import { createResponseSuccess } from '../response/success';
 
@@ -13,6 +13,7 @@ export class UserHandler {
 	}
 
 	private getUserHandler = async (req: FastifyRequest, reply: FastifyReply) => {
+		try {
 			const id = req[userId];
 
 			const user = await this.useCaseUser.getUser(id);
@@ -24,9 +25,19 @@ export class UserHandler {
 			const { password, ...userWithoutPassword } = user;
 
 			return createResponseSuccess(reply, userWithoutPassword);
+		} catch (e) {
+			const nonBusinessErrorResponse = catchNonBusinessErrors(e, req, reply);
+
+			if (nonBusinessErrorResponse) {
+				return nonBusinessErrorResponse;
+			}
+
+			return createResponseBadRequest(req, reply);
+		}
 	}
 
 	private patchUserHandler = async (req: FastifyRequest, reply: FastifyReply) => {
+		try {
 			const patchUserRequestDto = PatchUserRequestDto.parse(req.body);
 
 			const id = req[userId];
@@ -41,14 +52,33 @@ export class UserHandler {
 			const { password, ...userWithoutPassword } = updatedUser;
 
 			return createResponseSuccess(reply, userWithoutPassword);
+		} catch (e) {
+			const nonBusinessErrorResponse = catchNonBusinessErrors(e, req, reply);
+
+			if (nonBusinessErrorResponse) {
+				return nonBusinessErrorResponse;
+			}
+
+			return createResponseBadRequest(req, reply);
+		}
 	}
 
 	private deleteUserHandler = async (req: FastifyRequest, reply: FastifyReply) => {
+		try {
 			const id = req[userId];
 
 			await this.useCaseUser.deleteUser(id);
 
 			return createResponseSuccess(reply, {status: 'ok'});
+		} catch (e) {
+			const nonBusinessErrorResponse = catchNonBusinessErrors(e, req, reply);
+
+			if (nonBusinessErrorResponse) {
+				return nonBusinessErrorResponse;
+			}
+
+			return createResponseBadRequest(req, reply);
+		}
 	}
 
 	registerRoutes = async (instance: FastifyInstance, options: FastifyPluginOptions): Promise<void> => {
