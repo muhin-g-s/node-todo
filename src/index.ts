@@ -11,7 +11,8 @@ import { TaskRepository } from './repository/typed-orm/task/task-repository';
 import { UserService } from './domain/services/user';
 import Fastify, { FastifyInstance } from 'fastify'
 import { AuthManager } from './pkg/auth-manager/index';
-import { UseCaseAuth, UseCaseUser } from './domain/use-cases/user/index';
+import { UseCaseUser } from './domain/use-cases/user';
+import { UseCaseAuth } from './domain/use-cases/auth';
 import { UserRepository } from './repository/typed-orm/user/index';
 import { sqliteClient } from './pkg/db-client/index';
 import { hasZodFastifySchemaValidationErrors, isResponseSerializationError, jsonSchemaTransform, serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod';

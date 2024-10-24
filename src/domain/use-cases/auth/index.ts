@@ -1,4 +1,4 @@
-import { AuthEntity } from '@/domain/entities/user';
+import { AuthEntity } from '@/domain/entities/auth';
 import { UserEntity } from '@/domain/entities/user';
 import { UserService } from '@/domain/services/user';
 
