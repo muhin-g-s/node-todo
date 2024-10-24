@@ -1,6 +1,6 @@
 import { LoginResponseDto, RegisterRequestDto, LoginRequestDto, RegisterResponseDto, RegisterResponseDtoType } from '../dto/auth';
 import { FastifyInstance, FastifyPluginOptions, FastifyReply, FastifyRequest } from 'fastify';
-import { UseCaseAuth } from '@/domain/use-cases/user';
+import { UseCaseAuth } from '@/domain/use-cases/auth';
 import { UserEntity } from '@/domain/entities/user';
 import { createResponseSuccess } from '../response/success';
 import { httpErrorResponseAlreadyExists, httpErrorResponseErrorUnauthorized, createResponseBadRequest, baseHttpResponseMapping, catchNonBusinessErrors } from '../response/error';
