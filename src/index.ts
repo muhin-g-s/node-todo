@@ -19,6 +19,7 @@ import { hasZodFastifySchemaValidationErrors, isResponseSerializationError, json
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUi from '@fastify/swagger-ui';
 import { AuthService } from './domain/services/auth';
+import { PasswordService } from './domain/services/password';
 
 const globalPrefix = 'api/v1' as const;
 
@@ -32,7 +33,8 @@ try {
 
 		const authManager = new AuthManager();
 
-		const userService = new UserService(userRepository);
+		const passwordService = new PasswordService();
+		const userService = new UserService(userRepository, passwordService);
 		const taskService = new TaskService(taskRepository);
 		const authService = new AuthService(userRepository, authManager);
 

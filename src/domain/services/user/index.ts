@@ -1,108 +1,197 @@
 import { ExistedUser, UpdateUser, UserCreate, User } from '@/domain/entities/user';
+import { Either, ErrorResult, Result } from '@/lib';
 
-import bcrypt from 'bcrypt';
-
-interface IUserRepository {
-	save(user: UserCreate): Promise<ExistedUser>
-	findById(id: string): Promise<ExistedUser>
-	findByUsername(username: string): Promise<ExistedUser>
-	update(user: ExistedUser): Promise<ExistedUser>
-	delete(userId: string): Promise<void>
+const enum RepositoryError {
+	UnknownError,
+	NotFoundUser,
 }
 
+const enum ServiceError {
+	UnknownError,
+	NotFoundUser,
+	AlreadyExist,
+	PasswordTooSimple,
+}
+
+interface IUserRepository {
+	save(user: UserCreate): Promise<Either<RepositoryError, ExistedUser>>
+	findById(id: string): Promise<Either<RepositoryError, ExistedUser>>
+	findByUsername(username: string): Promise<Either<RepositoryError, ExistedUser>>
+	update(user: ExistedUser): Promise<Either<RepositoryError, ExistedUser>>
+	delete(userId: string): Promise<Either<RepositoryError, void>>
+}
+
+interface IPasswordService {
+	checkComplexity(password: string): boolean;
+	generateHash(password: string): Promise<Either<void, string>>;
+}
+
+type FullFilledUser = Required<{
+	[K in keyof UpdateUser]-?: NonNullable<UpdateUser[K]>
+}>
+
 export class UserService {
-	constructor(private userRepository: IUserRepository) { }
+	constructor(private userRepository: IUserRepository, private passwordService: IPasswordService) { }
 
-	async create({ username, password }: UserCreate): Promise<User> {
-		const existUser = await this.userRepository.findByUsername(username);
+	async create({ username, password }: UserCreate): Promise<Either<ServiceError, User>> {
+		const resultFindByName = await this.userRepository.findByUsername(username);
 
-		if (existUser) {
-			throw new Error('Error');
+		if (resultFindByName.isResult()) {
+			return ErrorResult.create(ServiceError.AlreadyExist)
 		}
 
-		if ((this.isPasswordTooSimple(password))) {
-			throw new Error('Error');
+		if (resultFindByName.isError()) {
+			const { error } = resultFindByName;
+
+			if (error === RepositoryError.UnknownError) {
+				return ErrorResult.create(ServiceError.UnknownError);
+			}
 		}
 
-		const passwordHash = await this.generateHashPassword(password);
+		const resultPasswordHash = await this.getHashPassword(password);
 
-		const newUser = await this.userRepository.save({ username, password: passwordHash });
+		if (resultPasswordHash.isError()) {
+			return ErrorResult.create(resultPasswordHash.error);
+		}
 
-		return newUser;
+		const resultSaveNewUser = await this.userRepository.save({ username, password: resultPasswordHash.value });
+
+		if (resultSaveNewUser.isError()) {
+			return ErrorResult.create(ServiceError.PasswordTooSimple);
+		}
+
+		return Result.create(resultSaveNewUser.value);
 	}
 
-	async findById(userId: string): Promise<User> {
-		const user = await this.userRepository.findById(userId);
+	async findById(userId: string): Promise<Either<ServiceError, User>> {
+		const resultFindUserById = await this.userRepository.findById(userId);
 
-		return user;
+		if (resultFindUserById.isError()) {
+			const { error } = resultFindUserById;
+
+			switch (error) {
+				case RepositoryError.UnknownError: return ErrorResult.create(ServiceError.UnknownError);
+				case RepositoryError.NotFoundUser: return ErrorResult.create(ServiceError.NotFoundUser);
+				default: return ErrorResult.create(ServiceError.UnknownError);
+			}
+		}
+
+		return Result.create(resultFindUserById.value);
 	}
 
-	async findByUsername(username: string): Promise<User> {
-		const user = await this.userRepository.findByUsername(username);
+	async findByUsername(username: string): Promise<Either<ServiceError, User>> {
+		const resultFindUserByUsername = await this.userRepository.findByUsername(username);
 
-		return user;
+		if (resultFindUserByUsername.isError()) {
+			const { error } = resultFindUserByUsername;
+
+			switch (error) {
+				case RepositoryError.UnknownError: return ErrorResult.create(ServiceError.UnknownError);
+				case RepositoryError.NotFoundUser: return ErrorResult.create(ServiceError.NotFoundUser);
+				default: return ErrorResult.create(ServiceError.UnknownError);
+			}
+		}
+
+		return Result.create(resultFindUserByUsername.value);
 	}
 
-	async update(updateUser: UpdateUser): Promise<User> {
-		let updatedAndSaveUser: User;
+	async update(updateUser: UpdateUser): Promise<Either<ServiceError, User>> {
+		let updatedAndSaveUserResult: Either<ServiceError, User>;
 
 		if (!updateUser.password || !updateUser.username) {
-			updatedAndSaveUser = await this.updateNotFullFilled(updateUser);
+			updatedAndSaveUserResult = await this.updateNotFullFilled(updateUser);
 		} else {
-			updatedAndSaveUser = await this.updateFullFilled(updateUser);
+			updatedAndSaveUserResult = await this.updateFullFilled(updateUser);
 		}
 
-		return updatedAndSaveUser;
+		if (updatedAndSaveUserResult.isError()) {
+			return ErrorResult.create(updatedAndSaveUserResult.error);
+		}
+
+		return Result.create(updatedAndSaveUserResult.value);
 	}
 
-	async delete(userId: string): Promise<User> {
-		const existUser = await this.findById(userId);
-		await this.userRepository.delete(existUser.id);
-		return existUser;
+	async delete(userId: string): Promise<Either<ServiceError, User>> {
+		const existUserResult = await this.findById(userId);
+
+		if (existUserResult.isError()) {
+			return ErrorResult.create(existUserResult.error);
+		}
+
+		const existUser = existUserResult.value;
+
+		const resultDelete = await this.userRepository.delete(existUser.id);
+
+		if (resultDelete.isError()) {
+			return ErrorResult.create(ServiceError.UnknownError);
+		}
+
+		return Result.create(existUser);
 	}
 
-	private async updateNotFullFilled(updateUser: UpdateUser): Promise<User> {
-		const existUser = await this.findById(updateUser.id);
+	private async updateNotFullFilled(updateUser: UpdateUser): Promise<Either<ServiceError, User>> {
+		const existUserResult = await this.findById(updateUser.id);
+
+		if (existUserResult.isError()) {
+			return ErrorResult.create(existUserResult.error);
+		}
+
+		const existUser = existUserResult.value;
 
 		if (updateUser.password) {
+			const resultPasswordHash = await this.getHashPassword(updateUser.password);
 
-			if (this.isPasswordTooSimple(updateUser.password)) {
-				throw new Error('Error');
-			};
+			if (resultPasswordHash.isError()) {
+				return ErrorResult.create(resultPasswordHash.error);
+			}
 
-			const passwordHash = await this.generateHashPassword(updateUser.password);
-
-			existUser.password = passwordHash;
+			existUser.password = resultPasswordHash.value;
 		}
 
 		if (updateUser.username) {
 			existUser.username = updateUser.username
 		}
 
-		const updatedAndSaveUser = await this.update(updateUser);
+		const updatedAndSaveUserResult = await this.update(updateUser);
 
-		return updatedAndSaveUser;
-	}
-
-	private async updateFullFilled(updateUser: UpdateUser): Promise<User> {
-		if (this.isPasswordTooSimple(updateUser.password!)) {
-			throw new Error('Error');
-		};
-
-		const updatedAndSaveUser = await this.update(updateUser);
-
-		return updatedAndSaveUser;
-	}
-
-	private isPasswordTooSimple(password: string): boolean {
-		if (password === '') {
-			return true;
+		if (updatedAndSaveUserResult.isError()) {
+			return ErrorResult.create(ServiceError.UnknownError);
 		}
 
-		return false;
+		return Result.create(updatedAndSaveUserResult.value);
 	}
 
-	private generateHashPassword(password: string): Promise<string> {
-		return bcrypt.hash(password, 10);
+	private async updateFullFilled(updateUser: FullFilledUser): Promise<Either<ServiceError, User>> {
+		const resultPasswordHash = await this.getHashPassword(updateUser.password);
+
+		if (resultPasswordHash.isError()) {
+			return ErrorResult.create(resultPasswordHash.error);
+		}
+
+		updateUser.password = resultPasswordHash.value;
+
+		const updatedAndSaveUserResult = await this.update(updateUser);
+
+		if (updatedAndSaveUserResult.isError()) {
+			return ErrorResult.create(ServiceError.UnknownError);
+		}
+
+		return Result.create(updatedAndSaveUserResult.value);
+	}
+
+	private async getHashPassword(password: string): Promise<Either<ServiceError, string>> {
+		const isPasswordTooSimple = this.passwordService.checkComplexity(password);
+
+		if (isPasswordTooSimple) {
+			return ErrorResult.create(ServiceError.PasswordTooSimple);
+		}
+
+		const resultPasswordHash = await this.passwordService.generateHash(password);
+
+		if (resultPasswordHash.isError()) {
+			return ErrorResult.create(ServiceError.UnknownError);
+		}
+
+		return Result.create(resultPasswordHash.value);
 	}
 }
