@@ -1,46 +1,44 @@
 import { EntityManager, Repository } from 'typeorm';
-import { UserEntity } from '@/domain/entities/user';
-import { User } from './dto';
+import { User } from './model';
+import { UserCreate, User as UserEntity } from '@/domain/entities/user';
 
 export class UserRepository {
 
 	private repository: Repository<User>;
 
-	constructor(private entityManager: EntityManager){
+	constructor(entityManager: EntityManager) {
 		this.repository = entityManager.getRepository(User);
 	}
 
-	create(userEntity: UserEntity): Promise<UserEntity> {
-		return this.repository.save(this.mapUserEntity(userEntity));
+	save(user: UserCreate): Promise<UserEntity> {
+		return this.repository.save(user);
 	}
 
-	findById(id: string): Promise<UserEntity | null> {
-		return this.repository.findOneBy({id});
+	async findById(id: string): Promise<UserEntity> {
+		const user = await this.repository.findOneBy({ id });
+
+		if (!user) {
+			throw new Error('error');
+		}
+
+		return user;
 	}
 
-	findByUsername(username: string): Promise<UserEntity | null> {
-		return this.repository.findOneBy({username});
+	async findByUsername(username: string): Promise<UserEntity> {
+		const user = await this.repository.findOneBy({ username });
+
+		if (!user) {
+			throw new Error('error');
+		}
+
+		return user;
 	}
 
 	update(userEntity: UserEntity): Promise<UserEntity> {
-		return this.repository.save(this.mapUserEntity(userEntity));
+		return this.repository.save(userEntity);
 	}
 
 	async delete(userId: string): Promise<void> {
-		await this.repository.delete({id: userId});
-	}
-
-	private mapUserEntity(userEntity: UserEntity): User {
-
-		const userDto = new User();
-
-		if(userEntity.id) {
-			userDto.id = userEntity.id
-		}
-
-		userDto.password = userEntity.password;
-		userDto.username = userEntity.username;
-		
-		return userDto;
+		await this.repository.delete({ id: userId });
 	}
 }

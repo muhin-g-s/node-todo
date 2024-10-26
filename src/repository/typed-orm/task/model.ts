@@ -1,5 +1,5 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { User } from '../user/dto';
+import { User } from '../user/model';
 
 @Entity()
 export class Task {
@@ -8,7 +8,7 @@ export class Task {
 
 	@ManyToOne(() => User, (user) => user.id)
 	@JoinColumn()
-  userId: string;
+	userId: string;
 
 	@Column()
 	title: string;
