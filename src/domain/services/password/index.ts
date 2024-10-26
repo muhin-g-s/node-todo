@@ -20,7 +20,7 @@ export class PasswordService {
 		}
 	}
 
-	private async passwordAuthentication(data: string, encrypted: string): Promise<Either<void, boolean>> {
+	async passwordAuthentication(data: string, encrypted: string): Promise<Either<void, boolean>> {
 		try {
 			const isCompare = await bcrypt.compare(data, encrypted);
 			return Result.create(isCompare);
