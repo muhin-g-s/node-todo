@@ -1,18 +1,24 @@
 import { UserService } from '@/domain/services/user';
-import { UserEntity } from '@/domain/entities/user';
+import { UpdateUser, User } from '@/domain/entities/user';
+
+interface IUserService {
+	findById(userId: string): Promise<User>;
+	update(updateUser: UpdateUser): Promise<User>;
+	delete(userId: string): Promise<User>;
+}
 
 export class UseCaseUser {
-	constructor(private userService: UserService) {}
+	constructor(private userService: UserService) { }
 
-	getUser(userId: string): Promise<UserEntity | null>{
+	getUser(userId: string): Promise<User> {
 		return this.userService.findById(userId);
 	}
 
-	updateUser(userEntity: UserEntity): Promise<UserEntity>{
-		return this.userService.update(userEntity);
+	updateUser(user: UpdateUser): Promise<User> {
+		return this.userService.update(user);
 	}
 
-	async deleteUser(userId: string): Promise<void> {
-		await this.userService.delete(userId);
+	deleteUser(userId: string): Promise<User> {
+		return this.userService.delete(userId);
 	}
 }

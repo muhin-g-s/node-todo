@@ -18,6 +18,7 @@ import { sqliteClient } from './pkg/db-client/index';
 import { hasZodFastifySchemaValidationErrors, isResponseSerializationError, jsonSchemaTransform, serializerCompiler, validatorCompiler } from 'fastify-type-provider-zod';
 import fastifySwagger from '@fastify/swagger';
 import fastifySwaggerUi from '@fastify/swagger-ui';
+import { AuthService } from './domain/services/auth';
 
 const globalPrefix = 'api/v1' as const;
 
@@ -33,8 +34,9 @@ try {
 
 			const userService = new UserService(userRepository);
 			const taskService = new TaskService(taskRepository);
+			const authService = new AuthService(userRepository, authManager);
 
-			const useCaseAuth = new UseCaseAuth(authManager, userService);
+			const useCaseAuth = new UseCaseAuth(authService, userService);
 			const useCaseUser = new UseCaseUser(userService);
 			const useCaseTask = new UseCaseTask(taskService);
 

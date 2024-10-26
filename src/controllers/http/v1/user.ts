@@ -3,8 +3,8 @@ import { FastifyInstance, FastifyPluginOptions, FastifyReply, FastifyRequest } f
 import { UseCaseUser } from '@/domain/use-cases/user';
 import { AuthMiddleware, userId } from '../middleware/auth';
 import { baseHttpResponseMapping, catchNonBusinessErrors, createResponseBadRequest } from '../response/error';
-import { UserEntity } from '@/domain/entities/user';
 import { createResponseSuccess } from '../response/success';
+import { UpdateUser } from '@/domain/entities/user';
 
 export const prefixUser = '/user';
 
@@ -18,7 +18,7 @@ export class UserHandler {
 
 			const user = await this.useCaseUser.getUser(id);
 
-			if(!user) {
+			if (!user) {
 				return createResponseBadRequest(req, reply);
 			}
 
@@ -42,10 +42,10 @@ export class UserHandler {
 
 			const id = req[userId];
 
-			const userEntity: UserEntity = {...patchUserRequestDto, id, createdAt: null, updatedAt: null, deleteAt: null};
+			const user: UpdateUser = { ...patchUserRequestDto, id };
 
 			const updatedUser = await this.useCaseUser.updateUser({
-				...userEntity,
+				...user,
 				id
 			});
 
@@ -69,7 +69,7 @@ export class UserHandler {
 
 			await this.useCaseUser.deleteUser(id);
 
-			return createResponseSuccess(reply, {status: 'ok'});
+			return createResponseSuccess(reply, { status: 'ok' });
 		} catch (e) {
 			const nonBusinessErrorResponse = catchNonBusinessErrors(e, req, reply);
 
@@ -94,7 +94,7 @@ export class UserHandler {
 				response: {
 					200: GetUserResponseDto,
 					...baseHttpResponseMapping
-				} 
+				}
 			},
 			handler: this.getUserHandler
 		})
@@ -110,7 +110,7 @@ export class UserHandler {
 				response: {
 					200: PatchUserResponseDto,
 					...baseHttpResponseMapping
-				} 
+				}
 			},
 			handler: this.patchUserHandler
 		})

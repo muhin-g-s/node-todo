@@ -1,68 +1,81 @@
-import { TaskEntity } from '@/domain/entities/task';
+import { CreateTask, FindTask, Task, UpdateTask } from '@/domain/entities/task';
 
 interface ITaskRepository {
-	findManyByUserId(userId: string): Promise<TaskEntity[]>;
-	create(taskEntity: TaskEntity): Promise<TaskEntity>;
-	findById(taskId: string): Promise<TaskEntity | null>;
-	create(taskEntity: TaskEntity): Promise<TaskEntity>;
-	update(taskEntity: TaskEntity): Promise<TaskEntity>;
+	findManyByUserId(userId: string): Promise<Task[]>;
+	save(task: CreateTask): Promise<Task>;
+	findById(taskId: string): Promise<Task>;
+	update(task: UpdateTask): Promise<Task>;
 	delete(taskId: string): Promise<void>;
 }
 
 export class TaskService {
-  constructor(private taskRepository: ITaskRepository) {}
+	constructor(private taskRepository: ITaskRepository) { }
 
-  create(taskEntity: TaskEntity): Promise<TaskEntity> {
-    return this.taskRepository.create(taskEntity);
-  }
+	create(task: CreateTask): Promise<Task> {
+		return this.taskRepository.save(task);
+	}
 
-	async update(taskEntity: TaskEntity, userId: string): Promise<TaskEntity> {
-		const task = await this.getById(taskEntity.id ?? '', userId);
+	async update(task: UpdateTask): Promise<Task> {
+		const existedTask = await this.getById(task);
 
-		if(this.checkBelongingTaskToUser(task, userId)) {
+		if (this.checkBelongingTaskToUser(existedTask.userId, task.userId)) {
 			throw new Error('task not belonging user');
 		}
 
-    return this.taskRepository.update(taskEntity);
-  }
+		if (task.description) {
+			existedTask.description = task.description;
+		}
 
-  async getById(taskId: string, userId: string): Promise<TaskEntity | null> {
-		const task = await this.taskRepository.findById(taskId);
+		if (task.isCompleted) {
+			existedTask.isCompleted = task.isCompleted;
+		}
 
-		if(this.checkBelongingTaskToUser(task, userId)) {
+		if (task.title) {
+			existedTask.title = task.title;
+		}
+
+		return this.taskRepository.update(existedTask);
+	}
+
+	async getById({ id, userId }: FindTask): Promise<Task> {
+		const existedTask = await this.taskRepository.findById(id);
+
+		if (this.checkBelongingTaskToUser(existedTask.userId, userId)) {
 			throw new Error('task not belonging user');
 		}
 
-		return task;
-  }
+		return existedTask;
+	}
 
-	getAll(userId: string): Promise<TaskEntity[]> {
+	getAll(userId: string): Promise<Task[]> {
 		return this.taskRepository.findManyByUserId(userId);
 	}
 
-	async getNotCompleted(userId: string): Promise<TaskEntity[]> {
+	async getNotCompleted(userId: string): Promise<Task[]> {
 		const tasks = await this.taskRepository.findManyByUserId(userId);
 
 		return tasks.filter(el => !el.isCompleted);
 	}
 
-	async getCompleted(userId: string): Promise<TaskEntity[]> {
+	async getCompleted(userId: string): Promise<Task[]> {
 		const tasks = await this.taskRepository.findManyByUserId(userId);
 
 		return tasks.filter(el => el.isCompleted);
 	}
 
-  async delete(taskId: string, userId: string): Promise<void> {
-		const task = await this.getById(taskId, userId);
+	async delete({ id, userId }: FindTask): Promise<Task> {
+		const existedTask = await this.taskRepository.findById(id);
 
-		if(this.checkBelongingTaskToUser(task, userId)) {
+		if (this.checkBelongingTaskToUser(existedTask.userId, userId)) {
 			throw new Error('task not belonging user');
 		}
 
-    await this.taskRepository.delete(taskId);
-  }
+		await this.taskRepository.delete(id);
 
-	private checkBelongingTaskToUser(taskEntity: TaskEntity | null, userId: string): boolean {
-		return !!taskEntity && (taskEntity.id === userId);
+		return existedTask;
+	}
+
+	private checkBelongingTaskToUser(taskId: string, userId: string): boolean {
+		return taskId === userId;
 	}
 }

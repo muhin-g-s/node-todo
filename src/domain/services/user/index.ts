@@ -1,88 +1,108 @@
-import { InternalServerError, UserOperationError, UserOperationErrorMessages,  } from '@/domain/errors';
-import { UserEntity } from '@/domain/entities/user';
+import { ExistedUser, UpdateUser, UserCreate, User } from '@/domain/entities/user';
 
 import bcrypt from 'bcrypt';
 
 interface IUserRepository {
-	create(userEntity: UserEntity): Promise<UserEntity>
-	findById(id: string): Promise<UserEntity | null>
-	findByUsername(username: string): Promise<UserEntity | null>
-	update(userEntity: UserEntity): Promise<UserEntity>
+	save(user: UserCreate): Promise<ExistedUser>
+	findById(id: string): Promise<ExistedUser>
+	findByUsername(username: string): Promise<ExistedUser>
+	update(user: ExistedUser): Promise<ExistedUser>
 	delete(userId: string): Promise<void>
 }
 
 export class UserService {
-	constructor(private userRepository: IUserRepository){}
+	constructor(private userRepository: IUserRepository) { }
 
-	async create(userEntity: UserEntity): Promise<UserEntity> {
-		const password = userEntity.password;
+	async create({ username, password }: UserCreate): Promise<User> {
+		const existUser = await this.userRepository.findByUsername(username);
 
-		if(this.isPasswordTooSimple(password)) {
-			throw new UserOperationError(UserOperationErrorMessages.PasswordTooSimple);
+		if (existUser) {
+			throw new Error('Error');
 		}
 
-		try {
-			userEntity.password = await this.generateHashPassword(password);
-		} catch(e) {
-			throw new InternalServerError('Error generate hash password');
+		if ((this.isPasswordTooSimple(password))) {
+			throw new Error('Error');
 		}
 
-		try {
-			const user = await this.userRepository.create(userEntity);
-			return user; 
-		} catch(e) {
-			throw new InternalServerError('Error create user in data base');
-		}
+		const passwordHash = await this.generateHashPassword(password);
+
+		const newUser = await this.userRepository.save({ username, password: passwordHash });
+
+		return newUser;
 	}
 
-	async findById(userId: string): Promise<UserEntity | null> {
-		try {
-			const user = await this.userRepository.findById(userId);
-			return user; 
-		} catch(e) {
-			throw new InternalServerError('Error find user in data base');
-		}
+	async findById(userId: string): Promise<User> {
+		const user = await this.userRepository.findById(userId);
+
+		return user;
 	}
 
-	async findByUsername(username: string): Promise<UserEntity | null> {
-		try {
-			const user = await this.userRepository.findByUsername(username);
-			return user; 
-		} catch(e) {
-			throw new InternalServerError('Error find user in data base');
-		}
+	async findByUsername(username: string): Promise<User> {
+		const user = await this.userRepository.findByUsername(username);
+
+		return user;
 	}
 
-	async update(userEntity: UserEntity): Promise<UserEntity> {
-		try {
-			const user = await this.userRepository.update(userEntity);
-			return user; 
-		} catch(e) {
-			throw new InternalServerError('Error update user in data base');
+	async update(updateUser: UpdateUser): Promise<User> {
+		let updatedAndSaveUser: User;
+
+		if (!updateUser.password || !updateUser.username) {
+			updatedAndSaveUser = await this.updateNotFullFilled(updateUser);
+		} else {
+			updatedAndSaveUser = await this.updateFullFilled(updateUser);
 		}
+
+		return updatedAndSaveUser;
 	}
 
-	async delete(userId: string): Promise<void> {
-		try {
-			await this.userRepository.delete(userId);
-		} catch(e) {
-			throw new InternalServerError('Error delete user in data base');
-		}
+	async delete(userId: string): Promise<User> {
+		const existUser = await this.findById(userId);
+		await this.userRepository.delete(existUser.id);
+		return existUser;
 	}
 
-	private isPasswordTooSimple(password: string | undefined): boolean {
-		if(password === undefined || password === '') {
+	private async updateNotFullFilled(updateUser: UpdateUser): Promise<User> {
+		const existUser = await this.findById(updateUser.id);
+
+		if (updateUser.password) {
+
+			if (this.isPasswordTooSimple(updateUser.password)) {
+				throw new Error('Error');
+			};
+
+			const passwordHash = await this.generateHashPassword(updateUser.password);
+
+			existUser.password = passwordHash;
+		}
+
+		if (updateUser.username) {
+			existUser.username = updateUser.username
+		}
+
+		const updatedAndSaveUser = await this.update(updateUser);
+
+		return updatedAndSaveUser;
+	}
+
+	private async updateFullFilled(updateUser: UpdateUser): Promise<User> {
+		if (this.isPasswordTooSimple(updateUser.password!)) {
+			throw new Error('Error');
+		};
+
+		const updatedAndSaveUser = await this.update(updateUser);
+
+		return updatedAndSaveUser;
+	}
+
+	private isPasswordTooSimple(password: string): boolean {
+		if (password === '') {
 			return true;
 		}
 
 		return false;
 	}
 
-	private generateHashPassword(password: string | undefined): Promise<string> {
-		if(password === undefined) {
-			throw new Error('password is not be undefined');
-		}
-
+	private generateHashPassword(password: string): Promise<string> {
 		return bcrypt.hash(password, 10);
 	}
 }

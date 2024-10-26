@@ -1,30 +1,54 @@
-export class TaskEntity {
+export type Task = {
 	id: string;
 	userId: string;
 	title: string;
 	description: string;
 	isCompleted: boolean;
-	createdAt: Date | null;
-	updatedAt: Date | null;
-	deleteAt: Date | null;
-
-	constructor(
-    id: string,
-    userId: string,
-    title: string,
-    description: string,
-    isCompleted: false,
-    createdAt: Date, 
-		updatedAt: Date, 
-		deleteAt: Date
-  ) {
-		this.id = id;
-    this.userId = userId;
-    this.title = title;
-    this.description = description;
-    this.isCompleted = isCompleted;
-    this.createdAt = createdAt;
-    this.updatedAt = updatedAt;
-    this.deleteAt = deleteAt;
-  }
 }
+
+export type CreateTask = {
+	userId: string;
+	title: string;
+	description: string;
+	isCompleted: boolean;
+}
+
+export type FindTask = {
+	id: string;
+	userId: string;
+}
+
+export type UpdateTask = {
+	userId: string;
+	id: string;
+} & (
+		{
+			title: string;
+			description: string;
+			isCompleted: boolean;
+		} | {
+			title: string;
+			description?: never;
+			isCompleted?: never;
+		} | {
+			title?: never;
+			description?: never;
+			isCompleted: boolean;
+		} | {
+			title?: never;
+			description: string;
+			isCompleted?: never;
+		} | {
+			title: string;
+			description: string;
+			isCompleted?: never;
+		} | {
+			title: string;
+			description?: never;
+			isCompleted: boolean;
+		} | {
+			title?: never;
+			description: string;
+			isCompleted: boolean;
+		}
+	)

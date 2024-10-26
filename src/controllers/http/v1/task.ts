@@ -1,11 +1,11 @@
-import { 
-	CreateTaskRequestDto, 
-	GetTaskResponseDto, 
-	PatchTaskRequestDto, 
-	DeleteTaskResponseDto, 
-	PatchTaskResponseDto, 
-	CreateTaskResponseDto, 
-	GetAllTaskResponseDto, 
+import {
+	CreateTaskRequestDto,
+	GetTaskResponseDto,
+	PatchTaskRequestDto,
+	DeleteTaskResponseDto,
+	PatchTaskResponseDto,
+	CreateTaskResponseDto,
+	GetAllTaskResponseDto,
 	GetNotCompleteTaskResponseDto,
 	GetCompleteTaskResponseDto
 } from './../dto/task';
@@ -14,6 +14,7 @@ import { UseCaseTask } from '@/domain/use-cases/task';
 import { AuthMiddleware, userId } from '../middleware/auth';
 import { baseHttpResponseMapping } from '../response/error';
 import { createResponseSuccess } from '../response/success';
+import { CreateTask, FindTask, UpdateTask } from '@/domain/entities/task';
 
 export const prefixTask = '/task';
 
@@ -22,58 +23,69 @@ export class TaskHandler {
 	}
 
 	private getTaskHandler = async (req: FastifyRequest, reply: FastifyReply) => {
-		const taskEntity = await this.useCaseTask.getTask((req.params as {uuid: string})['uuid'], req[userId]);
-
-		if(taskEntity) {
-			return createResponseSuccess(reply, taskEntity as any);
-		} else {
-			return createResponseSuccess(reply, [] as any);
+		const task: FindTask = {
+			id: (req.params as { uuid: string })['uuid'],
+			userId: req[userId],
 		}
+
+		const taskEntity = await this.useCaseTask.getTask(task);
+
+		return createResponseSuccess(reply, taskEntity);
 	}
 
 	private patchTaskHandler = async (req: FastifyRequest, reply: FastifyReply) => {
 		const patchTaskRequestDto = PatchTaskRequestDto.parse(req.body);
 
-		const task = await this.useCaseTask.updateTask(
-			{...patchTaskRequestDto, id: '', createdAt: null, updatedAt: null, deleteAt: null}, 
-			req[userId]
-		);
+		const task: UpdateTask = {
+			id: req[userId],
+			...patchTaskRequestDto
+		};
 
-		return createResponseSuccess(reply, task as any);
+		const updatedTask = await this.useCaseTask.updateTask(task);
+
+		return createResponseSuccess(reply, updatedTask);
 	}
 
 	private deleteTaskHandler = async (req: FastifyRequest, reply: FastifyReply) => {
-		await this.useCaseTask.deleteTask((req.params as {uuid: string})['uuid'], req[userId]);
+		const task: FindTask = {
+			id: (req.params as { uuid: string })['uuid'],
+			userId: req[userId],
+		}
 
-		return createResponseSuccess(reply, {status: 'ok'});
+		const deletedTask = await this.useCaseTask.deleteTask(task);
+
+		return createResponseSuccess(reply, deletedTask);
 	}
 
 	private createTaskHandler = async (req: FastifyRequest, reply: FastifyReply) => {
 		const taskDto = CreateTaskRequestDto.parse(req.body);
 
-		const task = await this.useCaseTask.create(
-			{...taskDto, id: '', userId: req[userId], createdAt: null, updatedAt: null, deleteAt: null}
-		);
+		const task: CreateTask = {
+			userId: req[userId],
+			...taskDto,
+		}
 
-		return createResponseSuccess(reply, task as any);
+		const newTask = await this.useCaseTask.create(task);
+
+		return createResponseSuccess(reply, newTask);
 	}
 
 	private getAllTaskHandler = async (req: FastifyRequest, reply: FastifyReply) => {
 		const tasks = await this.useCaseTask.getAll(req[userId]);
 
-		return createResponseSuccess(reply, tasks as any);
+		return createResponseSuccess(reply, { tasks: tasks });
 	}
 
 	private getNotCompetedTaskHandler = async (req: FastifyRequest, reply: FastifyReply) => {
 		const tasks = await this.useCaseTask.getAll(req[userId]);
 
-		return createResponseSuccess(reply, tasks as any);
+		return createResponseSuccess(reply, { tasks: tasks });
 	}
 
 	private getCompetedTaskHandler = async (req: FastifyRequest, reply: FastifyReply) => {
 		const tasks = await this.useCaseTask.getAll(req[userId]);
 
-		return createResponseSuccess(reply, tasks as any);
+		return createResponseSuccess(reply, { tasks: tasks });
 	}
 
 	registerRoutes = async (instance: FastifyInstance, options: FastifyPluginOptions): Promise<void> => {
@@ -89,7 +101,7 @@ export class TaskHandler {
 				response: {
 					200: GetTaskResponseDto,
 					...baseHttpResponseMapping
-				} 
+				}
 			},
 			handler: this.getTaskHandler
 		})
@@ -105,7 +117,7 @@ export class TaskHandler {
 				response: {
 					200: PatchTaskResponseDto,
 					...baseHttpResponseMapping
-				} 
+				}
 			},
 			handler: this.patchTaskHandler
 		})
@@ -120,7 +132,7 @@ export class TaskHandler {
 				response: {
 					200: DeleteTaskResponseDto,
 					...baseHttpResponseMapping
-				} 
+				}
 			},
 			handler: this.deleteTaskHandler
 		})
@@ -136,7 +148,7 @@ export class TaskHandler {
 				response: {
 					200: CreateTaskResponseDto,
 					...baseHttpResponseMapping
-				} 
+				}
 			},
 			handler: this.createTaskHandler
 		})
@@ -151,7 +163,7 @@ export class TaskHandler {
 				response: {
 					200: GetAllTaskResponseDto,
 					...baseHttpResponseMapping
-				} 
+				}
 			},
 			handler: this.getAllTaskHandler
 		})
@@ -166,7 +178,7 @@ export class TaskHandler {
 				response: {
 					200: GetNotCompleteTaskResponseDto,
 					...baseHttpResponseMapping
-				} 
+				}
 			},
 			handler: this.getNotCompetedTaskHandler
 		})
@@ -181,7 +193,7 @@ export class TaskHandler {
 				response: {
 					200: GetCompleteTaskResponseDto,
 					...baseHttpResponseMapping
-				} 
+				}
 			},
 			handler: this.getCompetedTaskHandler
 		})

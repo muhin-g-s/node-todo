@@ -1,34 +1,43 @@
-import { TaskService } from '@/domain/services/task';
-import { TaskEntity } from '@/domain/entities/task';
+import { CreateTask, FindTask, Task, UpdateTask } from '@/domain/entities/task';
+
+interface ITaskService {
+	getById({ id, userId }: FindTask): Promise<Task>;
+	update(task: UpdateTask): Promise<Task>;
+	delete({ id, userId }: FindTask): Promise<Task>;
+	create(task: CreateTask): Promise<Task>;
+	getAll(userId: string): Promise<Task[]>;
+	getNotCompleted(userId: string): Promise<Task[]>;
+	getCompleted(userId: string): Promise<Task[]>;
+}
 
 export class UseCaseTask {
-	constructor(private taskService: TaskService) {}
+	constructor(private taskService: ITaskService) { }
 
-	getTask(taskId: string, userId: string): Promise<TaskEntity | null>{
-		return this.taskService.getById(taskId, userId);
+	getTask(task: FindTask): Promise<Task> {
+		return this.taskService.getById(task);
 	}
 
-	updateTask(taskEntity: TaskEntity, userId: string): Promise<TaskEntity>{
-		return this.taskService.update(taskEntity, userId);
+	updateTask(task: UpdateTask): Promise<Task> {
+		return this.taskService.update(task);
 	}
 
-	async deleteTask(taskId: string, userId: string): Promise<void> {
-		await this.taskService.delete(taskId, userId);
+	deleteTask(task: FindTask): Promise<Task> {
+		return this.taskService.delete(task);
 	}
 
-	create(taskEntity: TaskEntity): Promise<TaskEntity> {
-		return this.taskService.create(taskEntity);
+	create(task: CreateTask): Promise<Task> {
+		return this.taskService.create(task);
 	}
 
-	getAll(userId: string): Promise<TaskEntity[]> {
+	getAll(userId: string): Promise<Task[]> {
 		return this.taskService.getAll(userId);
-	} 
+	}
 
-	getNotCompleted(userId: string): Promise<TaskEntity[]> {
+	getNotCompleted(userId: string): Promise<Task[]> {
 		return this.taskService.getNotCompleted(userId);
-	} 
+	}
 
-	getCompleted(userId: string): Promise<TaskEntity[]> {
+	getCompleted(userId: string): Promise<Task[]> {
 		return this.taskService.getCompleted(userId);
-	} 
+	}
 }

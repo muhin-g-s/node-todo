@@ -5,18 +5,18 @@ export const GetTaskResponseDto = httpSuccessResponse.extend({
 	data: z.object({
 		id: z.string(),
 		userId: z.string(),
-    title: z.string(),
+		title: z.string(),
 		description: z.string(),
 		isCompleted: z.boolean(),
-    createdAt: z.date().optional(),
-    updatedAt: z.date().optional(),
-    deleteAt: z.date().optional(),
+		createdAt: z.date().optional(),
+		updatedAt: z.date().optional(),
+		deleteAt: z.date().optional(),
 	})
 });
 
 export type GetTaskResponseDtoType = z.infer<typeof GetTaskResponseDto>;
 
-export const PatchTaskRequestDto = z.object({ 
+export const PatchTaskRequestDto = z.object({
 	userId: z.string(),
 	title: z.string(),
 	description: z.string(),
@@ -29,12 +29,12 @@ export const PatchTaskResponseDto = httpSuccessResponse.extend({
 	data: z.object({
 		id: z.string(),
 		userId: z.string(),
-    title: z.string(),
+		title: z.string(),
 		description: z.string(),
 		isCompleted: z.boolean(),
-    createdAt: z.date().optional(),
-    updatedAt: z.date().optional(),
-    deleteAt: z.date().optional(),
+		createdAt: z.date().optional(),
+		updatedAt: z.date().optional(),
+		deleteAt: z.date().optional(),
 	})
 });
 
@@ -49,7 +49,6 @@ export const DeleteTaskResponseDto = httpSuccessResponse.extend({
 export type DeleteTaskResponseDtoType = z.infer<typeof DeleteTaskResponseDto>;
 
 export const CreateTaskRequestDto = httpSuccessResponse.extend({
-	userId: z.string(),
 	title: z.string(),
 	description: z.string(),
 	isCompleted: z.boolean(),
@@ -61,12 +60,12 @@ export const CreateTaskResponseDto = httpSuccessResponse.extend({
 	data: z.object({
 		id: z.string(),
 		userId: z.string(),
-    title: z.string(),
+		title: z.string(),
 		description: z.string(),
 		isCompleted: z.boolean(),
-    createdAt: z.date().optional(),
-    updatedAt: z.date().optional(),
-    deleteAt: z.date().optional(),
+		createdAt: z.date().optional(),
+		updatedAt: z.date().optional(),
+		deleteAt: z.date().optional(),
 	})
 });
 
@@ -76,12 +75,12 @@ export const GetAllTaskResponseDto = httpSuccessResponse.extend({
 	data: z.object({
 		id: z.string(),
 		userId: z.string(),
-    title: z.string(),
+		title: z.string(),
 		description: z.string(),
 		isCompleted: z.boolean(),
-    createdAt: z.date().optional(),
-    updatedAt: z.date().optional(),
-    deleteAt: z.date().optional(),
+		createdAt: z.date().optional(),
+		updatedAt: z.date().optional(),
+		deleteAt: z.date().optional(),
 	}).array(),
 });
 
@@ -91,12 +90,12 @@ export const GetNotCompleteTaskResponseDto = httpSuccessResponse.extend({
 	data: z.object({
 		id: z.string(),
 		userId: z.string(),
-    title: z.string(),
+		title: z.string(),
 		description: z.string(),
 		isCompleted: z.boolean(),
-    createdAt: z.date().optional(),
-    updatedAt: z.date().optional(),
-    deleteAt: z.date().optional(),
+		createdAt: z.date().optional(),
+		updatedAt: z.date().optional(),
+		deleteAt: z.date().optional(),
 	}).array(),
 });
 
@@ -106,12 +105,12 @@ export const GetCompleteTaskResponseDto = httpSuccessResponse.extend({
 	data: z.object({
 		id: z.string(),
 		userId: z.string(),
-    title: z.string(),
+		title: z.string(),
 		description: z.string(),
 		isCompleted: z.boolean(),
-    createdAt: z.date().optional(),
-    updatedAt: z.date().optional(),
-    deleteAt: z.date().optional(),
+		createdAt: z.date().optional(),
+		updatedAt: z.date().optional(),
+		deleteAt: z.date().optional(),
 	}).array(),
 });
 
