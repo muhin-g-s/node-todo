@@ -8,3 +8,9 @@ export const enum TaskServiceError {
 	NotFoundTask,
 	NotBelongingUser,
 }
+
+export const enum TaskUseCaseError {
+	UnknownError,
+	NotFoundTask,
+	NotBelongingUser,
+}

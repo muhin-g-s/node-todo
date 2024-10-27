@@ -3,3 +3,11 @@ export const enum AuthServiceError {
 	NotFoundUser,
 	PasswordNotCompare,
 }
+
+export const enum AuthUseCaseError {
+	UnknownError,
+	NotFoundUser,
+	PasswordNotCompare,
+	AlreadyExist,
+	PasswordTooSimple,
+}

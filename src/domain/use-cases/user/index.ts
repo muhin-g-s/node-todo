@@ -1,24 +1,62 @@
-import { UserService } from '@/domain/services/user';
 import { UpdateUser, User } from '@/domain/entities/user';
+import { UserServiceError, UserUseCaseError } from '@/domain/errors/user';
+import { Either, ErrorResult, Result } from '@/lib';
 
 interface IUserService {
-	findById(userId: string): Promise<User>;
-	update(updateUser: UpdateUser): Promise<User>;
-	delete(userId: string): Promise<User>;
+	findById(userId: string): Promise<Either<UserServiceError, User>>;
+	update(updateUser: UpdateUser): Promise<Either<UserServiceError, User>>;
+	delete(userId: string): Promise<Either<UserServiceError, User>>;
 }
 
 export class UseCaseUser {
-	constructor(private userService: UserService) { }
+	constructor(private userService: IUserService) { }
 
-	getUser(userId: string): Promise<User> {
-		return this.userService.findById(userId);
+	async getUser(userId: string): Promise<Either<UserUseCaseError, User>> {
+		const userResult = await this.userService.findById(userId);
+
+		if (userResult.isError()) {
+			const { error } = userResult;
+
+			switch (error) {
+				case UserServiceError.UnknownError: return ErrorResult.create(UserUseCaseError.UnknownError);
+				case UserServiceError.NotFoundUser: return ErrorResult.create(UserUseCaseError.NotFoundUser);
+				default: return ErrorResult.create(UserUseCaseError.UnknownError);
+			}
+		}
+
+		return Result.create(userResult.value);
 	}
 
-	updateUser(user: UpdateUser): Promise<User> {
-		return this.userService.update(user);
+	async updateUser(user: UpdateUser): Promise<Either<UserUseCaseError, User>> {
+		const userResult = await this.userService.update(user);
+
+		if (userResult.isError()) {
+			const { error } = userResult;
+
+			switch (error) {
+				case UserServiceError.UnknownError: return ErrorResult.create(UserUseCaseError.UnknownError);
+				case UserServiceError.NotFoundUser: return ErrorResult.create(UserUseCaseError.NotFoundUser);
+				case UserServiceError.PasswordTooSimple: return ErrorResult.create(UserUseCaseError.PasswordTooSimple);
+				default: return ErrorResult.create(UserUseCaseError.UnknownError);
+			}
+		}
+
+		return Result.create(userResult.value);
 	}
 
-	deleteUser(userId: string): Promise<User> {
-		return this.userService.delete(userId);
+	async deleteUser(userId: string): Promise<Either<UserUseCaseError, User>> {
+		const userResult = await this.userService.delete(userId);
+
+		if (userResult.isError()) {
+			const { error } = userResult;
+
+			switch (error) {
+				case UserServiceError.UnknownError: return ErrorResult.create(UserUseCaseError.UnknownError);
+				case UserServiceError.NotFoundUser: return ErrorResult.create(UserUseCaseError.NotFoundUser);
+				default: return ErrorResult.create(UserUseCaseError.UnknownError);
+			}
+		}
+
+		return Result.create(userResult.value);
 	}
 }

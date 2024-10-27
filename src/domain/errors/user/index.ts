@@ -9,3 +9,9 @@ export enum UserServiceError {
 	AlreadyExist,
 	PasswordTooSimple,
 }
+
+export enum UserUseCaseError {
+	UnknownError,
+	NotFoundUser,
+	PasswordTooSimple,
+}
