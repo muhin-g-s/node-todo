@@ -1,4 +1,3 @@
-import { BusinessLogicError, DomainError } from '@/domain/errors';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 
@@ -7,7 +6,7 @@ enum HttpErrorCode {
 	Unauthorized = 401,
 	Forbidden = 403,
 	NotFound = 404,
-	AlreadyExists = 409, 
+	AlreadyExists = 409,
 	InternalError = 500,
 }
 
@@ -52,7 +51,7 @@ const createErrorForbidden = (method: string, url: string): HttpErrorResponseTyp
 		url,
 	}
 })
-	
+
 const createErrorNotFound = (method: string, url: string): HttpErrorResponseType => ({
 	error: 'Not Found',
 	code: HttpErrorCode.NotFound,
@@ -112,18 +111,6 @@ export const httpErrorResponseAlreadyExists = httpErrorResponse.merge(z.object({
 }));
 
 export const baseHttpResponseMapping = {
-	400 : httpErrorResponseBadRequest,
-	500 : httpErrorResponseErrorInternal
-}
-
-export const catchNonBusinessErrors = (e: unknown, req: FastifyRequest, reply: FastifyReply): FastifyReply | null => {
-	if(!(e instanceof DomainError)) {
-		return createResponseErrorInternal(req, reply);
-	}
-
-	if(!(e instanceof BusinessLogicError)) {
-		return createResponseErrorInternal(req, reply);
-	}
-
-	return null
+	400: httpErrorResponseBadRequest,
+	500: httpErrorResponseErrorInternal
 }

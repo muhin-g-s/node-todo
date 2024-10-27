@@ -1,81 +1,64 @@
-import { LoginResponseDto, RegisterRequestDto, LoginRequestDto, RegisterResponseDto, RegisterResponseDtoType } from '../dto/auth';
+import { LoginResponseDto, RegisterRequestDto, LoginRequestDto, RegisterResponseDto } from '../dto/auth';
 import { FastifyInstance, FastifyPluginOptions, FastifyReply, FastifyRequest } from 'fastify';
-import { UseCaseAuth } from '@/domain/use-cases/auth';
-import { User } from '@/domain/entities/user';
 import { createResponseSuccess } from '../response/success';
-import { httpErrorResponseAlreadyExists, httpErrorResponseErrorUnauthorized, createResponseBadRequest, baseHttpResponseMapping, catchNonBusinessErrors } from '../response/error';
-import { UserOperationError, UserOperationErrorMessages } from '@/domain/errors';
+import { httpErrorResponseAlreadyExists, httpErrorResponseErrorUnauthorized, createResponseBadRequest, baseHttpResponseMapping } from '../response/error';
+import { Auth, Login } from '@/domain/entities/auth';
+import { User, UserCreate } from '@/domain/entities/user';
+import { AuthUseCaseError } from '@/domain/errors/auth';
+import { Either } from '@/lib';
 
 export const prefixAuth = '/auth';
 
+interface IUseCaseAuth {
+	register(user: UserCreate): Promise<Either<AuthUseCaseError, User>>;
+	login(login: Login): Promise<Either<AuthUseCaseError, Auth>>;
+}
+
 export class AuthHandler {
-	constructor(private useCaseAuth: UseCaseAuth) {
-	}
+	constructor(private useCaseAuth: IUseCaseAuth) { }
 
 	private registerHandler = async (req: FastifyRequest, reply: FastifyReply) => {
 		const registerDto = RegisterRequestDto.parse(req.body);
 
-		try {
-			const { username, id } = await this.useCaseAuth.register(registerDto);
+		const registerResult = await this.useCaseAuth.register(registerDto);
 
-			return createResponseSuccess(reply, {	
-				username,
-				id:id ?? '',
-			});
-		} catch (e) {
-			const nonBusinessErrorResponse = catchNonBusinessErrors(e, req, reply);
+		if (registerResult.isError()) {
+			const { error } = registerResult;
 
-			if (nonBusinessErrorResponse) {
-				return nonBusinessErrorResponse;
-			}
-
-			if(!(e instanceof UserOperationError)) {
-				return createResponseBadRequest(req, reply);
-			}
-			
-			const message = e.message as UserOperationErrorMessages;
-
-			switch(message) {
-				case UserOperationErrorMessages.PasswordTooSimple: 
-					return createResponseBadRequest(req, reply, UserOperationErrorMessages.PasswordTooSimple);
-				default:
-					return createResponseBadRequest(req, reply);
+			switch (error) {
+				case AuthUseCaseError.UnknownError: return createResponseBadRequest(req, reply);
+				case AuthUseCaseError.AlreadyExist: return createResponseBadRequest(req, reply, 'Already exist');
+				case AuthUseCaseError.PasswordTooSimple: return createResponseBadRequest(req, reply, 'Password too simple');
+				default: return createResponseBadRequest(req, reply);
 			}
 		}
+
+		return createResponseSuccess(reply, registerResult.value);
 	}
 
 	private loginHandler = async (req: FastifyRequest, reply: FastifyReply) => {
-		const userDto = LoginRequestDto.parse(req.body);
+		const loginDto = LoginRequestDto.parse(req.body);
 
-		try {
-			const { token, userId, username } = await this.useCaseAuth.login(userDto);
+		const loginResult = await this.useCaseAuth.login(loginDto);
 
-			return createResponseSuccess(reply, {	
-				username,
-				id: userId,
-			}, {
-				authorization: token,
-			});
-		} catch (e) {
-			const nonBusinessErrorResponse = catchNonBusinessErrors(e, req, reply);
-			
-			if (nonBusinessErrorResponse) {
-				return nonBusinessErrorResponse;
-			}
+		if (loginResult.isError()) {
+			const { error } = loginResult;
 
-			if(!(e instanceof UserOperationError)) {
-				return createResponseBadRequest(req, reply);
-			}
-			
-			const message = e.message as UserOperationErrorMessages;
-
-			switch(message) {
-				case UserOperationErrorMessages.PasswordTooSimple: 
-					return createResponseBadRequest(req, reply, UserOperationErrorMessages.PasswordTooSimple);
-				default:
-					return createResponseBadRequest(req, reply);
+			switch (error) {
+				case AuthUseCaseError.UnknownError: return createResponseBadRequest(req, reply);
+				case AuthUseCaseError.NotFoundUser: return createResponseBadRequest(req, reply, 'Not found user');
+				default: return createResponseBadRequest(req, reply);
 			}
 		}
+
+		const { token, userId, username } = loginResult.value;
+
+		return createResponseSuccess(reply, {
+			username,
+			id: userId,
+		}, {
+			authorization: token,
+		});
 	}
 
 	registerRoutes = async (instance: FastifyInstance, options: FastifyPluginOptions): Promise<void> => {
@@ -85,12 +68,12 @@ export class AuthHandler {
 			schema: {
 				description: 'register',
 				tags: ['auth'],
-				body: RegisterRequestDto, 
+				body: RegisterRequestDto,
 				response: {
-					200 : RegisterResponseDto,		
-					409 : httpErrorResponseAlreadyExists,
+					200: RegisterResponseDto,
+					409: httpErrorResponseAlreadyExists,
 					...baseHttpResponseMapping
-				} 
+				}
 			},
 			handler: this.registerHandler
 		})
@@ -101,12 +84,12 @@ export class AuthHandler {
 			schema: {
 				description: 'login',
 				tags: ['auth'],
-				body: LoginRequestDto, 
+				body: LoginRequestDto,
 				response: {
-					200 : LoginResponseDto,
-					401 : httpErrorResponseErrorUnauthorized,
+					200: LoginResponseDto,
+					401: httpErrorResponseErrorUnauthorized,
 					...baseHttpResponseMapping
-				} 
+				}
 			},
 			handler: this.loginHandler
 		})
