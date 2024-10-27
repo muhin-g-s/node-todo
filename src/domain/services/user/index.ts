@@ -56,11 +56,9 @@ export class UserService {
 
 		const resultSaveNewUser = await this.userRepository.save({ username, password: resultPasswordHash.value });
 
-		if (resultSaveNewUser.isError()) {
-			return ErrorResult.create(ServiceError.PasswordTooSimple);
-		}
-
-		return Result.create(resultSaveNewUser.value);
+		return resultSaveNewUser.isError() ?
+			ErrorResult.create(ServiceError.PasswordTooSimple)
+			: Result.create(resultSaveNewUser.value);
 	}
 
 	async findById(userId: string): Promise<Either<ServiceError, User>> {
@@ -104,11 +102,9 @@ export class UserService {
 			updatedAndSaveUserResult = await this.updateFullFilled(updateUser);
 		}
 
-		if (updatedAndSaveUserResult.isError()) {
-			return ErrorResult.create(updatedAndSaveUserResult.error);
-		}
-
-		return Result.create(updatedAndSaveUserResult.value);
+		return updatedAndSaveUserResult.isError() ?
+			ErrorResult.create(updatedAndSaveUserResult.error)
+			: Result.create(updatedAndSaveUserResult.value);
 	}
 
 	async delete(userId: string): Promise<Either<ServiceError, User>> {
@@ -122,11 +118,9 @@ export class UserService {
 
 		const resultDelete = await this.userRepository.delete(existUser.id);
 
-		if (resultDelete.isError()) {
-			return ErrorResult.create(ServiceError.UnknownError);
-		}
-
-		return Result.create(existUser);
+		return resultDelete.isError() ?
+			ErrorResult.create(ServiceError.UnknownError)
+			: Result.create(existUser);
 	}
 
 	private async updateNotFullFilled(updateUser: UpdateUser): Promise<Either<ServiceError, User>> {
@@ -154,11 +148,9 @@ export class UserService {
 
 		const updatedAndSaveUserResult = await this.update(updateUser);
 
-		if (updatedAndSaveUserResult.isError()) {
-			return ErrorResult.create(ServiceError.UnknownError);
-		}
-
-		return Result.create(updatedAndSaveUserResult.value);
+		return updatedAndSaveUserResult.isError() ?
+			ErrorResult.create(ServiceError.UnknownError)
+			: Result.create(updatedAndSaveUserResult.value);
 	}
 
 	private async updateFullFilled(updateUser: FullFilledUser): Promise<Either<ServiceError, User>> {
@@ -172,11 +164,9 @@ export class UserService {
 
 		const updatedAndSaveUserResult = await this.update(updateUser);
 
-		if (updatedAndSaveUserResult.isError()) {
-			return ErrorResult.create(ServiceError.UnknownError);
-		}
-
-		return Result.create(updatedAndSaveUserResult.value);
+		return updatedAndSaveUserResult.isError() ?
+			ErrorResult.create(ServiceError.UnknownError)
+			: Result.create(updatedAndSaveUserResult.value);
 	}
 
 	private async getHashPassword(password: string): Promise<Either<ServiceError, string>> {
@@ -188,10 +178,8 @@ export class UserService {
 
 		const resultPasswordHash = await this.passwordService.generateHash(password);
 
-		if (resultPasswordHash.isError()) {
-			return ErrorResult.create(ServiceError.UnknownError);
-		}
-
-		return Result.create(resultPasswordHash.value);
+		return resultPasswordHash.isError() ?
+			ErrorResult.create(ServiceError.UnknownError)
+			: Result.create(resultPasswordHash.value);
 	}
 }

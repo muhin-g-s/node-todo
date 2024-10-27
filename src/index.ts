@@ -36,7 +36,7 @@ try {
 		const passwordService = new PasswordService();
 		const userService = new UserService(userRepository, passwordService);
 		const taskService = new TaskService(taskRepository);
-		const authService = new AuthService(userRepository, authManager);
+		const authService = new AuthService(userRepository, authManager, passwordService);
 
 		const useCaseAuth = new UseCaseAuth(authService, userService);
 		const useCaseUser = new UseCaseUser(userService);
