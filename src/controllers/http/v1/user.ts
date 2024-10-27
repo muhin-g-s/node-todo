@@ -1,84 +1,87 @@
 import { DeleteUserResponseDto, GetUserResponseDto, PatchUserRequestDto, PatchUserResponseDto } from './../dto/user';
 import { FastifyInstance, FastifyPluginOptions, FastifyReply, FastifyRequest } from 'fastify';
-import { UseCaseUser } from '@/domain/use-cases/user';
 import { AuthMiddleware, userId } from '../middleware/auth';
-import { baseHttpResponseMapping, catchNonBusinessErrors, createResponseBadRequest } from '../response/error';
+import { baseHttpResponseMapping, createResponseBadRequest } from '../response/error';
 import { createResponseSuccess } from '../response/success';
-import { UpdateUser } from '@/domain/entities/user';
+import { UpdateUser, User } from '@/domain/entities/user';
+import { UserUseCaseError } from '@/domain/errors/user';
+import { Either } from '@/lib';
 
 export const prefixUser = '/user';
 
+interface IUseCaseUser {
+	getUser(userId: string): Promise<Either<UserUseCaseError, User>>;
+	updateUser(user: UpdateUser): Promise<Either<UserUseCaseError, User>>;
+	deleteUser(userId: string): Promise<Either<UserUseCaseError, User>>;
+}
+
 export class UserHandler {
-	constructor(private useCaseUser: UseCaseUser, private authMiddleware: AuthMiddleware) {
-	}
+	constructor(private useCaseUser: IUseCaseUser, private authMiddleware: AuthMiddleware) { }
 
 	private getUserHandler = async (req: FastifyRequest, reply: FastifyReply) => {
-		try {
-			const id = req[userId];
+		const id = req[userId];
 
-			const user = await this.useCaseUser.getUser(id);
+		const userResult = await this.useCaseUser.getUser(id);
 
-			if (!user) {
-				return createResponseBadRequest(req, reply);
+		if (userResult.isError()) {
+			const { error } = userResult;
+
+			switch (error) {
+				case UserUseCaseError.UnknownError: return createResponseBadRequest(req, reply);
+				case UserUseCaseError.NotFoundUser: return createResponseBadRequest(req, reply, 'Not found user');
+				default: return createResponseBadRequest(req, reply);
 			}
-
-			const { password, ...userWithoutPassword } = user;
-
-			return createResponseSuccess(reply, userWithoutPassword);
-		} catch (e) {
-			const nonBusinessErrorResponse = catchNonBusinessErrors(e, req, reply);
-
-			if (nonBusinessErrorResponse) {
-				return nonBusinessErrorResponse;
-			}
-
-			return createResponseBadRequest(req, reply);
 		}
+
+		const { password, ...userWithoutPassword } = userResult.value;
+
+		return createResponseSuccess(reply, userWithoutPassword);
 	}
 
 	private patchUserHandler = async (req: FastifyRequest, reply: FastifyReply) => {
-		try {
-			const patchUserRequestDto = PatchUserRequestDto.parse(req.body);
+		const patchUserRequestDto = PatchUserRequestDto.parse(req.body);
 
-			const id = req[userId];
+		const id = req[userId];
 
-			const user: UpdateUser = { ...patchUserRequestDto, id };
+		const user: UpdateUser = { ...patchUserRequestDto, id };
 
-			const updatedUser = await this.useCaseUser.updateUser({
-				...user,
-				id
-			});
+		const userResult = await this.useCaseUser.updateUser({
+			...user,
+			id
+		});
 
-			const { password, ...userWithoutPassword } = updatedUser;
+		if (userResult.isError()) {
+			const { error } = userResult;
 
-			return createResponseSuccess(reply, userWithoutPassword);
-		} catch (e) {
-			const nonBusinessErrorResponse = catchNonBusinessErrors(e, req, reply);
-
-			if (nonBusinessErrorResponse) {
-				return nonBusinessErrorResponse;
+			switch (error) {
+				case UserUseCaseError.UnknownError: return createResponseBadRequest(req, reply);
+				case UserUseCaseError.NotFoundUser: return createResponseBadRequest(req, reply, 'Not found user');
+				case UserUseCaseError.PasswordTooSimple: return createResponseBadRequest(req, reply, 'Password too simple');
+				default: return createResponseBadRequest(req, reply);
 			}
-
-			return createResponseBadRequest(req, reply);
 		}
+
+		const { password, ...userWithoutPassword } = userResult.value;
+
+		return createResponseSuccess(reply, userWithoutPassword);
 	}
 
 	private deleteUserHandler = async (req: FastifyRequest, reply: FastifyReply) => {
-		try {
-			const id = req[userId];
+		const id = req[userId];
 
-			await this.useCaseUser.deleteUser(id);
+		const userResult = await this.useCaseUser.deleteUser(id);
 
-			return createResponseSuccess(reply, { status: 'ok' });
-		} catch (e) {
-			const nonBusinessErrorResponse = catchNonBusinessErrors(e, req, reply);
+		if (userResult.isError()) {
+			const { error } = userResult;
 
-			if (nonBusinessErrorResponse) {
-				return nonBusinessErrorResponse;
+			switch (error) {
+				case UserUseCaseError.UnknownError: return createResponseBadRequest(req, reply);
+				case UserUseCaseError.NotFoundUser: return createResponseBadRequest(req, reply, 'Not found user');
+				default: return createResponseBadRequest(req, reply);
 			}
-
-			return createResponseBadRequest(req, reply);
 		}
+
+		return createResponseSuccess(reply, { status: 'ok' });
 	}
 
 	registerRoutes = async (instance: FastifyInstance, options: FastifyPluginOptions): Promise<void> => {
