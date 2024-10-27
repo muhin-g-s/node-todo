@@ -1,20 +1,11 @@
 import { Auth, Login } from '@/domain/entities/auth';
 import { ExistedUser } from '@/domain/entities/user';
+import { AuthServiceError } from '@/domain/errors/auth';
+import { UserRepositoryError } from '@/domain/errors/user';
 import { Either, ErrorResult, Result } from '@/lib';
 
-const enum RepositoryError {
-	UnknownError,
-	NotFoundUser,
-}
-
-const enum ServiceError {
-	UnknownError,
-	NotFoundUser,
-	PasswordNotCompare,
-}
-
 interface IUserRepository {
-	findByUsername(username: string): Promise<Either<RepositoryError, ExistedUser>>
+	findByUsername(username: string): Promise<Either<UserRepositoryError, ExistedUser>>
 }
 
 interface IAuthManager {
@@ -33,16 +24,16 @@ export class AuthService {
 		private passwordService: IPasswordService
 	) { }
 
-	async login(login: Login): Promise<Either<ServiceError, Auth>> {
+	async login(login: Login): Promise<Either<AuthServiceError, Auth>> {
 		const resultFindByName = await this.userRepository.findByUsername(login.username);
 
 		if (resultFindByName.isError()) {
 			const { error } = resultFindByName;
 
 			switch (error) {
-				case RepositoryError.UnknownError: return ErrorResult.create(ServiceError.UnknownError);
-				case RepositoryError.NotFoundUser: return ErrorResult.create(ServiceError.NotFoundUser);
-				default: return ErrorResult.create(ServiceError.UnknownError);
+				case UserRepositoryError.UnknownError: return ErrorResult.create(AuthServiceError.UnknownError);
+				case UserRepositoryError.NotFoundUser: return ErrorResult.create(AuthServiceError.NotFoundUser);
+				default: return ErrorResult.create(AuthServiceError.UnknownError);
 			}
 		}
 
@@ -51,11 +42,11 @@ export class AuthService {
 		const isCompareResult = await this.passwordService.passwordAuthentication(login.password, existedUser.password);
 
 		if (isCompareResult.isError()) {
-			return ErrorResult.create(ServiceError.UnknownError);
+			return ErrorResult.create(AuthServiceError.UnknownError);
 		}
 
 		if (!isCompareResult.value) {
-			return ErrorResult.create(ServiceError.PasswordNotCompare);
+			return ErrorResult.create(AuthServiceError.PasswordNotCompare);
 		}
 
 		const token = this.authManager.createToken(existedUser.id);
