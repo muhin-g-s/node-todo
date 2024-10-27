@@ -3,9 +3,9 @@ import { TaskServiceError, TaskUseCaseError } from '@/domain/errors/task';
 import { Either, ErrorResult, Result } from '@/lib';
 
 interface ITaskService {
-	getById({ id, userId }: FindTask): Promise<Either<TaskServiceError, Task>>;
+	getById(task: FindTask): Promise<Either<TaskServiceError, Task>>;
 	update(task: UpdateTask): Promise<Either<TaskServiceError, Task>>;
-	delete({ id, userId }: FindTask): Promise<Either<TaskServiceError, Task>>;
+	delete(task: FindTask): Promise<Either<TaskServiceError, Task>>;
 	create(task: CreateTask): Promise<Either<TaskServiceError, Task>>;
 	getAll(userId: string): Promise<Either<TaskServiceError, Task[]>>;
 	getNotCompleted(userId: string): Promise<Either<TaskServiceError, Task[]>>;

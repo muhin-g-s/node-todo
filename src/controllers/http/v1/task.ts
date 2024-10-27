@@ -10,16 +10,27 @@ import {
 	GetCompleteTaskResponseDto
 } from './../dto/task';
 import { FastifyInstance, FastifyPluginOptions, FastifyReply, FastifyRequest } from 'fastify';
-import { UseCaseTask } from '@/domain/use-cases/task';
 import { AuthMiddleware, userId } from '../middleware/auth';
-import { baseHttpResponseMapping } from '../response/error';
+import { baseHttpResponseMapping, createResponseBadRequest } from '../response/error';
 import { createResponseSuccess } from '../response/success';
-import { CreateTask, FindTask, UpdateTask } from '@/domain/entities/task';
+import { CreateTask, FindTask, Task, UpdateTask } from '@/domain/entities/task';
+import { TaskUseCaseError } from '@/domain/errors/task';
+import { Either } from '@/lib';
 
 export const prefixTask = '/task';
 
+interface IUseCaseTask {
+	getTask(task: FindTask): Promise<Either<TaskUseCaseError, Task>>;
+	updateTask(task: UpdateTask): Promise<Either<TaskUseCaseError, Task>>;
+	deleteTask(task: FindTask): Promise<Either<TaskUseCaseError, Task>>;
+	create(task: CreateTask): Promise<Either<TaskUseCaseError, Task>>;
+	getAll(userId: string): Promise<Either<TaskUseCaseError, Task[]>>;
+	getNotCompleted(userId: string): Promise<Either<TaskUseCaseError, Task[]>>;
+	getCompleted(userId: string): Promise<Either<TaskUseCaseError, Task[]>>;
+}
+
 export class TaskHandler {
-	constructor(private useCaseTask: UseCaseTask, private authMiddleware: AuthMiddleware) {
+	constructor(private useCaseTask: IUseCaseTask, private authMiddleware: AuthMiddleware) {
 	}
 
 	private getTaskHandler = async (req: FastifyRequest, reply: FastifyReply) => {
@@ -28,9 +39,19 @@ export class TaskHandler {
 			userId: req[userId],
 		}
 
-		const taskEntity = await this.useCaseTask.getTask(task);
+		const taskResult = await this.useCaseTask.getTask(task);
 
-		return createResponseSuccess(reply, taskEntity);
+		if (taskResult.isError()) {
+			const { error } = taskResult;
+
+			switch (error) {
+				case TaskUseCaseError.UnknownError: return createResponseBadRequest(req, reply);
+				case TaskUseCaseError.NotBelongingUser: return createResponseBadRequest(req, reply, 'Not belonging user');
+				default: return createResponseBadRequest(req, reply);
+			}
+		}
+
+		return createResponseSuccess(reply, taskResult.value);
 	}
 
 	private patchTaskHandler = async (req: FastifyRequest, reply: FastifyReply) => {
@@ -41,9 +62,19 @@ export class TaskHandler {
 			...patchTaskRequestDto
 		};
 
-		const updatedTask = await this.useCaseTask.updateTask(task);
+		const taskResult = await this.useCaseTask.updateTask(task);
 
-		return createResponseSuccess(reply, updatedTask);
+		if (taskResult.isError()) {
+			const { error } = taskResult;
+
+			switch (error) {
+				case TaskUseCaseError.UnknownError: return createResponseBadRequest(req, reply);
+				case TaskUseCaseError.NotBelongingUser: return createResponseBadRequest(req, reply, 'Not belonging user');
+				default: return createResponseBadRequest(req, reply);
+			}
+		}
+
+		return createResponseSuccess(reply, taskResult.value);
 	}
 
 	private deleteTaskHandler = async (req: FastifyRequest, reply: FastifyReply) => {
@@ -52,9 +83,19 @@ export class TaskHandler {
 			userId: req[userId],
 		}
 
-		const deletedTask = await this.useCaseTask.deleteTask(task);
+		const taskResult = await this.useCaseTask.deleteTask(task);
 
-		return createResponseSuccess(reply, deletedTask);
+		if (taskResult.isError()) {
+			const { error } = taskResult;
+
+			switch (error) {
+				case TaskUseCaseError.UnknownError: return createResponseBadRequest(req, reply);
+				case TaskUseCaseError.NotBelongingUser: return createResponseBadRequest(req, reply, 'Not belonging user');
+				default: return createResponseBadRequest(req, reply);
+			}
+		}
+
+		return createResponseSuccess(reply, taskResult.value);
 	}
 
 	private createTaskHandler = async (req: FastifyRequest, reply: FastifyReply) => {
@@ -65,27 +106,63 @@ export class TaskHandler {
 			...taskDto,
 		}
 
-		const newTask = await this.useCaseTask.create(task);
+		const taskResult = await this.useCaseTask.create(task);
 
-		return createResponseSuccess(reply, newTask);
+		if (taskResult.isError()) {
+			const { error } = taskResult;
+
+			switch (error) {
+				case TaskUseCaseError.UnknownError: return createResponseBadRequest(req, reply);
+				default: return createResponseBadRequest(req, reply);
+			}
+		}
+
+		return createResponseSuccess(reply, taskResult.value);
 	}
 
 	private getAllTaskHandler = async (req: FastifyRequest, reply: FastifyReply) => {
-		const tasks = await this.useCaseTask.getAll(req[userId]);
+		const tasksResult = await this.useCaseTask.getAll(req[userId]);
 
-		return createResponseSuccess(reply, { tasks: tasks });
+		if (tasksResult.isError()) {
+			const { error } = tasksResult;
+
+			switch (error) {
+				case TaskUseCaseError.UnknownError: return createResponseBadRequest(req, reply);
+				default: return createResponseBadRequest(req, reply);
+			}
+		}
+
+		return createResponseSuccess(reply, { tasks: tasksResult.value });
 	}
 
 	private getNotCompetedTaskHandler = async (req: FastifyRequest, reply: FastifyReply) => {
-		const tasks = await this.useCaseTask.getAll(req[userId]);
+		const tasksResult = await this.useCaseTask.getNotCompleted(req[userId]);
 
-		return createResponseSuccess(reply, { tasks: tasks });
+		if (tasksResult.isError()) {
+			const { error } = tasksResult;
+
+			switch (error) {
+				case TaskUseCaseError.UnknownError: return createResponseBadRequest(req, reply);
+				default: return createResponseBadRequest(req, reply);
+			}
+		}
+
+		return createResponseSuccess(reply, { tasks: tasksResult.value });
 	}
 
 	private getCompetedTaskHandler = async (req: FastifyRequest, reply: FastifyReply) => {
-		const tasks = await this.useCaseTask.getAll(req[userId]);
+		const tasksResult = await this.useCaseTask.getCompleted(req[userId]);
 
-		return createResponseSuccess(reply, { tasks: tasks });
+		if (tasksResult.isError()) {
+			const { error } = tasksResult;
+
+			switch (error) {
+				case TaskUseCaseError.UnknownError: return createResponseBadRequest(req, reply);
+				default: return createResponseBadRequest(req, reply);
+			}
+		}
+
+		return createResponseSuccess(reply, { tasks: tasksResult.value });
 	}
 
 	registerRoutes = async (instance: FastifyInstance, options: FastifyPluginOptions): Promise<void> => {
