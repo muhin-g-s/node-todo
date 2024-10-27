@@ -1,6 +1,8 @@
 import { EntityManager, Repository } from 'typeorm';
 import { User } from './model';
-import { UserCreate, User as UserEntity } from '@/domain/entities/user';
+import { ExistedUser, UserCreate, User as UserEntity } from '@/domain/entities/user';
+import { Either, ErrorResult, Result } from '@/lib';
+import { UserRepositoryError } from '@/domain/errors/user';
 
 export class UserRepository {
 
@@ -10,35 +12,60 @@ export class UserRepository {
 		this.repository = entityManager.getRepository(User);
 	}
 
-	save(user: UserCreate): Promise<UserEntity> {
-		return this.repository.save(user);
-	}
-
-	async findById(id: string): Promise<UserEntity> {
-		const user = await this.repository.findOneBy({ id });
-
-		if (!user) {
-			throw new Error('error');
+	async save(user: UserCreate): Promise<Either<UserRepositoryError, ExistedUser>> {
+		try {
+			const userResult = await this.repository.save(user);
+			return Result.create(userResult);
+		} catch {
+			return ErrorResult.create(UserRepositoryError.UnknownError);
 		}
-
-		return user;
 	}
 
-	async findByUsername(username: string): Promise<UserEntity> {
-		const user = await this.repository.findOneBy({ username });
+	async findById(id: string): Promise<Either<UserRepositoryError, ExistedUser>> {
+		try {
+			const userResult = await this.repository.findOneBy({ id });
 
-		if (!user) {
-			throw new Error('error');
+			if (!userResult) {
+				return ErrorResult.create(UserRepositoryError.NotFoundUser);
+			}
+
+			return Result.create(userResult);
+		} catch {
+			return ErrorResult.create(UserRepositoryError.UnknownError);
 		}
-
-		return user;
 	}
 
-	update(userEntity: UserEntity): Promise<UserEntity> {
-		return this.repository.save(userEntity);
+	async findByUsername(username: string): Promise<Either<UserRepositoryError, ExistedUser>> {
+		try {
+			const userResult = await this.repository.findOneBy({ username });
+
+			if (!userResult) {
+				return ErrorResult.create(UserRepositoryError.NotFoundUser);
+			}
+
+			return Result.create(userResult);
+		} catch {
+			return ErrorResult.create(UserRepositoryError.UnknownError);
+		}
 	}
 
-	async delete(userId: string): Promise<void> {
-		await this.repository.delete({ id: userId });
+	async update(userEntity: UserEntity): Promise<Either<UserRepositoryError, ExistedUser>> {
+		try {
+			const userResult = await this.repository.save(userEntity);
+
+			return Result.create(userResult);
+		} catch {
+			return ErrorResult.create(UserRepositoryError.UnknownError);
+		}
+	}
+
+	async delete(userId: string): Promise<Either<UserRepositoryError, void>> {
+		try {
+			await this.repository.delete({ id: userId });
+
+			return Result.create(undefined);
+		} catch {
+			return ErrorResult.create(UserRepositoryError.UnknownError);
+		}
 	}
 }
