@@ -1,5 +1,12 @@
 import { CreateTask, FindTask, Task, UpdateTask } from '@/domain/entities/task';
-import { TaskServiceError, TaskServiceGetError, TaskServiceGetManyError, TaskServiceSaveError, TaskServiceUpdateError, TaskUseCaseError } from '@/domain/errors/task';
+import { 
+	TaskServiceError, 
+	TaskServiceGetError, 
+	TaskServiceGetManyError, 
+	TaskServiceSaveError, 
+	TaskServiceUpdateError, 
+	TaskUseCaseError 
+} from '@/domain/errors/task';
 import { Either, ErrorResult, Result } from '@/lib';
 
 interface ITaskService {
