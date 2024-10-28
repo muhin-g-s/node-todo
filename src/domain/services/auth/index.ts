@@ -1,6 +1,6 @@
 import { Auth, Login } from '@/domain/entities/auth';
 import { ExistedUser } from '@/domain/entities/user';
-import { AuthServiceError } from '@/domain/errors/auth';
+import { AuthServiceError, AuthServiceLoginError } from '@/domain/errors/auth';
 import { UserRepositoryError, UserRepositoryFindError } from '@/domain/errors/user';
 import { Either, ErrorResult, Result } from '@/lib';
 
@@ -24,7 +24,7 @@ export class AuthService {
 		private passwordService: IPasswordService
 	) { }
 
-	async login(login: Login): Promise<Either<AuthServiceError, Auth>> {
+	async login(login: Login): Promise<Either<AuthServiceLoginError, Auth>> {
 		const resultFindByName = await this.userRepository.findByUsername(login.username);
 
 		if (resultFindByName.isError()) {

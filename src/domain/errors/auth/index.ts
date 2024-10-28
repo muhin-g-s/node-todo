@@ -4,6 +4,8 @@ export const enum AuthServiceError {
 	PasswordNotCompare,
 }
 
+export type AuthServiceLoginError = AuthServiceError.NotFoundUser | AuthServiceError.PasswordNotCompare | AuthServiceError.UnknownError;
+
 export const enum AuthUseCaseError {
 	UnknownError,
 	NotFoundUser,
