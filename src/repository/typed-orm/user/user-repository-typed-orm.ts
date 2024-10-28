@@ -2,7 +2,13 @@ import { EntityManager, Repository } from 'typeorm';
 import { User } from './model';
 import { ExistedUser, UserCreate, User as UserEntity } from '@/domain/entities/user';
 import { Either, ErrorResult, Result } from '@/lib';
-import { UserRepositoryError } from '@/domain/errors/user';
+import {
+	UserRepositorySaveError,
+	UserRepositoryFindError,
+	UserRepositoryUpdateError,
+	UserRepositoryDeleteError,
+	UserRepositoryError
+} from '@/domain/errors/user';
 
 export class UserRepository {
 
@@ -12,7 +18,7 @@ export class UserRepository {
 		this.repository = entityManager.getRepository(User);
 	}
 
-	async save(user: UserCreate): Promise<Either<UserRepositoryError, ExistedUser>> {
+	async save(user: UserCreate): Promise<Either<UserRepositorySaveError, ExistedUser>> {
 		try {
 			const userResult = await this.repository.save(user);
 			return Result.create(userResult);
@@ -21,7 +27,7 @@ export class UserRepository {
 		}
 	}
 
-	async findById(id: string): Promise<Either<UserRepositoryError, ExistedUser>> {
+	async findById(id: string): Promise<Either<UserRepositoryFindError, ExistedUser>> {
 		try {
 			const userResult = await this.repository.findOneBy({ id });
 
@@ -35,7 +41,7 @@ export class UserRepository {
 		}
 	}
 
-	async findByUsername(username: string): Promise<Either<UserRepositoryError, ExistedUser>> {
+	async findByUsername(username: string): Promise<Either<UserRepositoryFindError, ExistedUser>> {
 		try {
 			const userResult = await this.repository.findOneBy({ username });
 
@@ -49,7 +55,7 @@ export class UserRepository {
 		}
 	}
 
-	async update(userEntity: UserEntity): Promise<Either<UserRepositoryError, ExistedUser>> {
+	async update(userEntity: UserEntity): Promise<Either<UserRepositoryUpdateError, ExistedUser>> {
 		try {
 			const userResult = await this.repository.save(userEntity);
 
@@ -59,7 +65,7 @@ export class UserRepository {
 		}
 	}
 
-	async delete(userId: string): Promise<Either<UserRepositoryError, void>> {
+	async delete(userId: string): Promise<Either<UserRepositoryDeleteError, void>> {
 		try {
 			await this.repository.delete({ id: userId });
 
