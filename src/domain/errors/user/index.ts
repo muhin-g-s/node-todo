@@ -15,6 +15,11 @@ export enum UserServiceError {
 	PasswordTooSimple,
 }
 
+export type UserServiceCreateError = UserServiceError.UnknownError | UserServiceError.AlreadyExist | UserServiceError.PasswordTooSimple;
+export type UserServiceFindError = UserServiceError.UnknownError | UserServiceError.NotFoundUser;
+export type UserServiceDeleteError = UserServiceError.UnknownError | UserServiceError.NotFoundUser;
+export type UserServiceUpdateError = UserServiceError.UnknownError | UserServiceError.NotFoundUser | UserServiceError.PasswordTooSimple;
+
 export enum UserUseCaseError {
 	UnknownError,
 	NotFoundUser,
