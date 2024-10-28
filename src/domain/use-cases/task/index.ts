@@ -1,15 +1,15 @@
 import { CreateTask, FindTask, Task, UpdateTask } from '@/domain/entities/task';
-import { TaskServiceError, TaskUseCaseError } from '@/domain/errors/task';
+import { TaskServiceError, TaskServiceGetError, TaskServiceGetManyError, TaskServiceSaveError, TaskServiceUpdateError, TaskUseCaseError } from '@/domain/errors/task';
 import { Either, ErrorResult, Result } from '@/lib';
 
 interface ITaskService {
-	getById(task: FindTask): Promise<Either<TaskServiceError, Task>>;
-	update(task: UpdateTask): Promise<Either<TaskServiceError, Task>>;
+	getById(task: FindTask): Promise<Either<TaskServiceGetError, Task>>;
+	update(task: UpdateTask): Promise<Either<TaskServiceUpdateError, Task>>;
 	delete(task: FindTask): Promise<Either<TaskServiceError, Task>>;
-	create(task: CreateTask): Promise<Either<TaskServiceError, Task>>;
-	getAll(userId: string): Promise<Either<TaskServiceError, Task[]>>;
-	getNotCompleted(userId: string): Promise<Either<TaskServiceError, Task[]>>;
-	getCompleted(userId: string): Promise<Either<TaskServiceError, Task[]>>;
+	create(task: CreateTask): Promise<Either<TaskServiceSaveError, Task>>;
+	getAll(userId: string): Promise<Either<TaskServiceGetManyError, Task[]>>;
+	getNotCompleted(userId: string): Promise<Either<TaskServiceGetManyError, Task[]>>;
+	getCompleted(userId: string): Promise<Either<TaskServiceGetManyError, Task[]>>;
 }
 
 export class UseCaseTask {
@@ -74,8 +74,6 @@ export class UseCaseTask {
 
 			switch (error) {
 				case TaskServiceError.UnknownError: return ErrorResult.create(TaskUseCaseError.UnknownError);
-				case TaskServiceError.NotFoundTask: return ErrorResult.create(TaskUseCaseError.NotFoundTask);
-				default: return ErrorResult.create(TaskUseCaseError.UnknownError);
 			}
 		}
 

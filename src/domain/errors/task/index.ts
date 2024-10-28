@@ -15,6 +15,13 @@ export const enum TaskServiceError {
 	NotBelongingUser,
 }
 
+export type TaskServiceSaveError = TaskServiceError.UnknownError;
+export type TaskServiceFindManyError = TaskServiceError.UnknownError;
+export type TaskServiceGetError = TaskServiceError.UnknownError | TaskServiceError.NotFoundTask | TaskServiceError.NotBelongingUser;
+export type TaskServiceGetManyError = TaskServiceError.UnknownError;
+export type TaskServiceUpdateError = TaskServiceError.UnknownError | TaskServiceError.NotFoundTask | TaskServiceError.NotBelongingUser;
+export type TaskServiceDeleteError = TaskServiceError.UnknownError;
+
 export const enum TaskUseCaseError {
 	UnknownError,
 	NotFoundTask,

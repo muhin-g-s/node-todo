@@ -1,19 +1,31 @@
 import { CreateTask, FindTask, Task, UpdateTask } from '@/domain/entities/task';
-import { TaskRepositoryError, TaskServiceError } from '@/domain/errors/task';
+import { 
+	TaskRepositoryError, 
+	TaskRepositoryFindManyError, 
+	TaskRepositorySaveError, 
+	TaskRepositoryFindError, 
+	TaskRepositoryDeleteError,
+	TaskRepositoryUpdateError,
+	TaskServiceError,
+	TaskServiceSaveError,
+	TaskServiceGetError,
+	TaskServiceUpdateError,
+	TaskServiceGetManyError
+} from '@/domain/errors/task';
 import { Either, ErrorResult, Result } from '@/lib';
 
 interface ITaskRepository {
-	findManyByUserId(userId: string): Promise<Either<TaskRepositoryError, Task[]>>;
-	save(task: CreateTask): Promise<Either<TaskRepositoryError, Task>>;
-	findById(taskId: string): Promise<Either<TaskRepositoryError, Task>>;
-	update(task: UpdateTask): Promise<Either<TaskRepositoryError, Task>>;
-	delete(taskId: string): Promise<Either<TaskRepositoryError, void>>;
+	findManyByUserId(userId: string): Promise<Either<TaskRepositoryFindManyError, Task[]>>;
+	save(task: CreateTask): Promise<Either<TaskRepositorySaveError, Task>>;
+	findById(taskId: string): Promise<Either<TaskRepositoryFindError, Task>>;
+	update(task: UpdateTask): Promise<Either<TaskRepositoryUpdateError, Task>>;
+	delete(taskId: string): Promise<Either<TaskRepositoryDeleteError, void>>;
 }
 
 export class TaskService {
 	constructor(private taskRepository: ITaskRepository) { }
 
-	async create(task: CreateTask): Promise<Either<TaskServiceError, Task>> {
+	async create(task: CreateTask): Promise<Either<TaskServiceSaveError, Task>> {
 		const createdTaskResult = await this.taskRepository.save(task);
 
 		return createdTaskResult.isError()
@@ -21,7 +33,7 @@ export class TaskService {
 			: Result.create(createdTaskResult.value);
 	}
 
-	async update(task: UpdateTask): Promise<Either<TaskServiceError, Task>> {
+	async update(task: UpdateTask): Promise<Either<TaskServiceUpdateError, Task>> {
 		const foundTaskResult = await this.getById(task);
 
 		if (foundTaskResult.isError()) {
@@ -49,7 +61,7 @@ export class TaskService {
 			: Result.create(updateTaskResult.value);
 	}
 
-	async getById({ id, userId }: FindTask): Promise<Either<TaskServiceError, Task>> {
+	async getById({ id, userId }: FindTask): Promise<Either<TaskServiceGetError, Task>> {
 		const foundTaskResult = await this.taskRepository.findById(id);
 
 		if (foundTaskResult.isError()) {
@@ -58,7 +70,6 @@ export class TaskService {
 			switch (error) {
 				case TaskRepositoryError.UnknownError: return ErrorResult.create(TaskServiceError.UnknownError);
 				case TaskRepositoryError.NotFoundTask: return ErrorResult.create(TaskServiceError.NotFoundTask);
-				default: return ErrorResult.create(TaskServiceError.UnknownError);
 			}
 		}
 
@@ -69,7 +80,7 @@ export class TaskService {
 			: ErrorResult.create(TaskServiceError.NotBelongingUser);
 	}
 
-	async getAll(userId: string): Promise<Either<TaskServiceError, Task[]>> {
+	async getAll(userId: string): Promise<Either<TaskServiceGetManyError, Task[]>> {
 		const foundTasksResult = await this.taskRepository.findManyByUserId(userId);
 
 		return foundTasksResult.isError()
@@ -77,7 +88,7 @@ export class TaskService {
 			: Result.create(foundTasksResult.value);
 	}
 
-	async getNotCompleted(userId: string): Promise<Either<TaskServiceError, Task[]>> {
+	async getNotCompleted(userId: string): Promise<Either<TaskServiceGetManyError, Task[]>> {
 		const foundTasksResult = await this.taskRepository.findManyByUserId(userId);
 
 		return foundTasksResult.isError()
@@ -85,7 +96,7 @@ export class TaskService {
 			: Result.create(foundTasksResult.value.filter(el => !el.isCompleted));
 	}
 
-	async getCompleted(userId: string): Promise<Either<TaskServiceError, Task[]>> {
+	async getCompleted(userId: string): Promise<Either<TaskServiceGetManyError, Task[]>> {
 		const foundTasksResult = await this.taskRepository.findManyByUserId(userId);
 
 		return foundTasksResult.isError()
