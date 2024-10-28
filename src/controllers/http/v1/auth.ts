@@ -4,14 +4,14 @@ import { createResponseSuccess } from '../response/success';
 import { httpErrorResponseAlreadyExists, httpErrorResponseErrorUnauthorized, createResponseBadRequest, baseHttpResponseMapping } from '../response/error';
 import { Auth, Login } from '@/domain/entities/auth';
 import { User, UserCreate } from '@/domain/entities/user';
-import { AuthUseCaseError } from '@/domain/errors/auth';
+import { AuthUseCaseError, AuthUseCaseLoginError, AuthUseCaseRegisterError } from '@/domain/errors/auth';
 import { Either } from '@/lib';
 
 export const prefixAuth = '/auth';
 
 interface IUseCaseAuth {
-	register(user: UserCreate): Promise<Either<AuthUseCaseError, User>>;
-	login(login: Login): Promise<Either<AuthUseCaseError, Auth>>;
+	register(user: UserCreate): Promise<Either<AuthUseCaseRegisterError, User>>;
+	login(login: Login): Promise<Either<AuthUseCaseLoginError, Auth>>;
 }
 
 export class AuthHandler {
@@ -29,7 +29,6 @@ export class AuthHandler {
 				case AuthUseCaseError.UnknownError: return createResponseBadRequest(req, reply);
 				case AuthUseCaseError.AlreadyExist: return createResponseBadRequest(req, reply, 'Already exist');
 				case AuthUseCaseError.PasswordTooSimple: return createResponseBadRequest(req, reply, 'Password too simple');
-				default: return createResponseBadRequest(req, reply);
 			}
 		}
 
@@ -47,7 +46,7 @@ export class AuthHandler {
 			switch (error) {
 				case AuthUseCaseError.UnknownError: return createResponseBadRequest(req, reply);
 				case AuthUseCaseError.NotFoundUser: return createResponseBadRequest(req, reply, 'Not found user');
-				default: return createResponseBadRequest(req, reply);
+				case AuthUseCaseError.PasswordNotCompare: return createResponseBadRequest(req, reply, 'Password not compare');
 			}
 		}
 

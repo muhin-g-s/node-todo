@@ -13,3 +13,6 @@ export const enum AuthUseCaseError {
 	AlreadyExist,
 	PasswordTooSimple,
 }
+
+export type AuthUseCaseRegisterError = AuthUseCaseError.PasswordTooSimple | AuthUseCaseError.AlreadyExist | AuthUseCaseError.UnknownError;
+export type AuthUseCaseLoginError = AuthUseCaseError.NotFoundUser | AuthUseCaseError.PasswordNotCompare | AuthUseCaseError.UnknownError;
