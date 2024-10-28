@@ -4,15 +4,15 @@ import { AuthMiddleware, userId } from '../middleware/auth';
 import { baseHttpResponseMapping, createResponseBadRequest } from '../response/error';
 import { createResponseSuccess } from '../response/success';
 import { UpdateUser, User } from '@/domain/entities/user';
-import { UserUseCaseError } from '@/domain/errors/user';
+import { UserUseCaseDeleteError, UserUseCaseError, UserUseCaseGetError, UserUseCaseUpdateError } from '@/domain/errors/user';
 import { Either } from '@/lib';
 
 export const prefixUser = '/user';
 
 interface IUseCaseUser {
-	getUser(userId: string): Promise<Either<UserUseCaseError, User>>;
-	updateUser(user: UpdateUser): Promise<Either<UserUseCaseError, User>>;
-	deleteUser(userId: string): Promise<Either<UserUseCaseError, User>>;
+	getUser(userId: string): Promise<Either<UserUseCaseGetError, User>>;
+	updateUser(user: UpdateUser): Promise<Either<UserUseCaseUpdateError, User>>;
+	deleteUser(userId: string): Promise<Either<UserUseCaseDeleteError, User>>;
 }
 
 export class UserHandler {
@@ -29,7 +29,6 @@ export class UserHandler {
 			switch (error) {
 				case UserUseCaseError.UnknownError: return createResponseBadRequest(req, reply);
 				case UserUseCaseError.NotFoundUser: return createResponseBadRequest(req, reply, 'Not found user');
-				default: return createResponseBadRequest(req, reply);
 			}
 		}
 
@@ -57,7 +56,6 @@ export class UserHandler {
 				case UserUseCaseError.UnknownError: return createResponseBadRequest(req, reply);
 				case UserUseCaseError.NotFoundUser: return createResponseBadRequest(req, reply, 'Not found user');
 				case UserUseCaseError.PasswordTooSimple: return createResponseBadRequest(req, reply, 'Password too simple');
-				default: return createResponseBadRequest(req, reply);
 			}
 		}
 
@@ -77,7 +75,6 @@ export class UserHandler {
 			switch (error) {
 				case UserUseCaseError.UnknownError: return createResponseBadRequest(req, reply);
 				case UserUseCaseError.NotFoundUser: return createResponseBadRequest(req, reply, 'Not found user');
-				default: return createResponseBadRequest(req, reply);
 			}
 		}
 

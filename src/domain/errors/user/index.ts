@@ -25,3 +25,7 @@ export enum UserUseCaseError {
 	NotFoundUser,
 	PasswordTooSimple,
 }
+
+export type UserUseCaseGetError = UserUseCaseError.UnknownError | UserUseCaseError.NotFoundUser;
+export type UserUseCaseDeleteError = UserUseCaseError.UnknownError | UserUseCaseError.NotFoundUser;
+export type UserUseCaseUpdateError = UserUseCaseError.UnknownError | UserUseCaseError.NotFoundUser | UserUseCaseError.PasswordTooSimple;
