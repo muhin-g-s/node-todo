@@ -1,11 +1,11 @@
 import { Auth, Login } from '@/domain/entities/auth';
 import { ExistedUser } from '@/domain/entities/user';
 import { AuthServiceError } from '@/domain/errors/auth';
-import { UserRepositoryError } from '@/domain/errors/user';
+import { UserRepositoryError, UserRepositoryFindError } from '@/domain/errors/user';
 import { Either, ErrorResult, Result } from '@/lib';
 
 interface IUserRepository {
-	findByUsername(username: string): Promise<Either<UserRepositoryError, ExistedUser>>
+	findByUsername(username: string): Promise<Either<UserRepositoryFindError, ExistedUser>>
 }
 
 interface IAuthManager {
@@ -33,7 +33,6 @@ export class AuthService {
 			switch (error) {
 				case UserRepositoryError.UnknownError: return ErrorResult.create(AuthServiceError.UnknownError);
 				case UserRepositoryError.NotFoundUser: return ErrorResult.create(AuthServiceError.NotFoundUser);
-				default: return ErrorResult.create(AuthServiceError.UnknownError);
 			}
 		}
 
