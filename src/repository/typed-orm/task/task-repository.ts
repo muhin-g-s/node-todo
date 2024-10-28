@@ -1,7 +1,14 @@
 import { EntityManager, Repository } from 'typeorm';
 import { CreateTask, Task as TaskEntity } from '@/domain/entities/task';
 import { Either, ErrorResult, Result } from '@/lib';
-import { TaskRepositoryError } from '@/domain/errors/task';
+import { 
+	TaskRepositoryError, 
+	TaskRepositoryFindManyError, 
+	TaskRepositorySaveError, 
+	TaskRepositoryFindError, 
+	TaskRepositoryDeleteError,
+	TaskRepositoryUpdateError
+} from '@/domain/errors/task';
 import { Task } from './model';
 
 export class TaskRepository {
@@ -11,7 +18,7 @@ export class TaskRepository {
 		this.repository = entityManager.getRepository(Task);
 	}
 
-	async save(task: CreateTask): Promise<Either<TaskRepositoryError, TaskEntity>> {
+	async save(task: CreateTask): Promise<Either<TaskRepositorySaveError, TaskEntity>> {
 		try {
 			const taskResult = await this.repository.save(task);
 			return Result.create(taskResult);
@@ -20,7 +27,7 @@ export class TaskRepository {
 		}
 	}
 
-	async findManyByUserId(userId: string): Promise<Either<TaskRepositoryError, TaskEntity[]>> {
+	async findManyByUserId(userId: string): Promise<Either<TaskRepositoryFindManyError, TaskEntity[]>> {
 		try {
 			const tasksResult = await this.repository.findBy({ userId });
 			return Result.create(tasksResult);
@@ -29,7 +36,7 @@ export class TaskRepository {
 		}
 	}
 
-	async findById(taskId: string): Promise<Either<TaskRepositoryError, TaskEntity>> {
+	async findById(taskId: string): Promise<Either<TaskRepositoryFindError, TaskEntity>> {
 		try {
 			const taskResult = await this.repository.findOneBy({ id: taskId });
 
@@ -43,7 +50,7 @@ export class TaskRepository {
 		}
 	}
 
-	async update(taskEntity: TaskEntity): Promise<Either<TaskRepositoryError, TaskEntity>> {
+	async update(taskEntity: TaskEntity): Promise<Either<TaskRepositoryUpdateError, TaskEntity>> {
 		try {
 			const taskResult = await this.repository.save(taskEntity);
 
@@ -53,7 +60,7 @@ export class TaskRepository {
 		}
 	}
 
-	async delete(taskId: string): Promise<Either<TaskRepositoryError, void>> {
+	async delete(taskId: string): Promise<Either<TaskRepositoryDeleteError, void>> {
 		try {
 			await this.repository.delete({ id: taskId });
 
