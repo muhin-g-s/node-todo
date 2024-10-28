@@ -14,19 +14,26 @@ import { AuthMiddleware, userId } from '../middleware/auth';
 import { baseHttpResponseMapping, createResponseBadRequest } from '../response/error';
 import { createResponseSuccess } from '../response/success';
 import { CreateTask, FindTask, Task, UpdateTask } from '@/domain/entities/task';
-import { TaskUseCaseError } from '@/domain/errors/task';
+import { 
+	TaskUseCaseDeleteError, 
+	TaskUseCaseError, 
+	TaskUseCaseGetError, 
+	TaskUseCaseGetManyError, 
+	TaskUseCaseSaveError, 
+	TaskUseCaseUpdateError 
+} from '@/domain/errors/task';
 import { Either } from '@/lib';
 
 export const prefixTask = '/task';
 
 interface IUseCaseTask {
-	getTask(task: FindTask): Promise<Either<TaskUseCaseError, Task>>;
-	updateTask(task: UpdateTask): Promise<Either<TaskUseCaseError, Task>>;
-	deleteTask(task: FindTask): Promise<Either<TaskUseCaseError, Task>>;
-	create(task: CreateTask): Promise<Either<TaskUseCaseError, Task>>;
-	getAll(userId: string): Promise<Either<TaskUseCaseError, Task[]>>;
-	getNotCompleted(userId: string): Promise<Either<TaskUseCaseError, Task[]>>;
-	getCompleted(userId: string): Promise<Either<TaskUseCaseError, Task[]>>;
+	getTask(task: FindTask): Promise<Either<TaskUseCaseGetError, Task>>;
+	updateTask(task: UpdateTask): Promise<Either<TaskUseCaseUpdateError, Task>>;
+	deleteTask(task: FindTask): Promise<Either<TaskUseCaseDeleteError, Task>>;
+	create(task: CreateTask): Promise<Either<TaskUseCaseSaveError, Task>>;
+	getAll(userId: string): Promise<Either<TaskUseCaseGetManyError, Task[]>>;
+	getNotCompleted(userId: string): Promise<Either<TaskUseCaseGetManyError, Task[]>>;
+	getCompleted(userId: string): Promise<Either<TaskUseCaseGetManyError, Task[]>>;
 }
 
 export class TaskHandler {
@@ -47,7 +54,7 @@ export class TaskHandler {
 			switch (error) {
 				case TaskUseCaseError.UnknownError: return createResponseBadRequest(req, reply);
 				case TaskUseCaseError.NotBelongingUser: return createResponseBadRequest(req, reply, 'Not belonging user');
-				default: return createResponseBadRequest(req, reply);
+				case TaskUseCaseError.NotFoundTask: return createResponseBadRequest(req, reply, 'Not found task');
 			}
 		}
 
@@ -70,7 +77,7 @@ export class TaskHandler {
 			switch (error) {
 				case TaskUseCaseError.UnknownError: return createResponseBadRequest(req, reply);
 				case TaskUseCaseError.NotBelongingUser: return createResponseBadRequest(req, reply, 'Not belonging user');
-				default: return createResponseBadRequest(req, reply);
+				case TaskUseCaseError.NotFoundTask: return createResponseBadRequest(req, reply, 'Not found task');
 			}
 		}
 
@@ -91,7 +98,7 @@ export class TaskHandler {
 			switch (error) {
 				case TaskUseCaseError.UnknownError: return createResponseBadRequest(req, reply);
 				case TaskUseCaseError.NotBelongingUser: return createResponseBadRequest(req, reply, 'Not belonging user');
-				default: return createResponseBadRequest(req, reply);
+				case TaskUseCaseError.NotFoundTask: return createResponseBadRequest(req, reply, 'Not found task');
 			}
 		}
 
@@ -113,7 +120,6 @@ export class TaskHandler {
 
 			switch (error) {
 				case TaskUseCaseError.UnknownError: return createResponseBadRequest(req, reply);
-				default: return createResponseBadRequest(req, reply);
 			}
 		}
 
@@ -128,7 +134,6 @@ export class TaskHandler {
 
 			switch (error) {
 				case TaskUseCaseError.UnknownError: return createResponseBadRequest(req, reply);
-				default: return createResponseBadRequest(req, reply);
 			}
 		}
 
@@ -143,7 +148,6 @@ export class TaskHandler {
 
 			switch (error) {
 				case TaskUseCaseError.UnknownError: return createResponseBadRequest(req, reply);
-				default: return createResponseBadRequest(req, reply);
 			}
 		}
 
@@ -158,7 +162,6 @@ export class TaskHandler {
 
 			switch (error) {
 				case TaskUseCaseError.UnknownError: return createResponseBadRequest(req, reply);
-				default: return createResponseBadRequest(req, reply);
 			}
 		}
 

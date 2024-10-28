@@ -10,7 +10,8 @@ import {
 	TaskServiceSaveError,
 	TaskServiceGetError,
 	TaskServiceUpdateError,
-	TaskServiceGetManyError
+	TaskServiceGetManyError,
+	TaskServiceDeleteError
 } from '@/domain/errors/task';
 import { Either, ErrorResult, Result } from '@/lib';
 
@@ -104,7 +105,7 @@ export class TaskService {
 			: Result.create(foundTasksResult.value.filter(el => el.isCompleted));
 	}
 
-	async delete(task: FindTask): Promise<Either<TaskServiceError, Task>> {
+	async delete(task: FindTask): Promise<Either<TaskServiceDeleteError, Task>> {
 		const foundTaskResult = await this.getById(task);
 
 		if (foundTaskResult.isError()) {
