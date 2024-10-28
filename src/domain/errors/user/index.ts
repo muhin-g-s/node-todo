@@ -3,6 +3,11 @@ export const enum UserRepositoryError {
 	NotFoundUser,
 }
 
+export type UserRepositorySaveError = UserRepositoryError.UnknownError;
+export type UserRepositoryFindError = UserRepositoryError.UnknownError | UserRepositoryError.NotFoundUser;
+export type UserRepositoryUpdateError = UserRepositoryError.UnknownError;
+export type UserRepositoryDeleteError = UserRepositoryError.UnknownError;
+
 export enum UserServiceError {
 	UnknownError,
 	NotFoundUser,
